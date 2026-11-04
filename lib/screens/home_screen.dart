@@ -52,6 +52,14 @@ class HomeScreen extends StatelessWidget {
                         label: Text('${provider.streak}-day streak'),
                       ),
                     ),
+                  if (book != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Text(
+                        'Today: ${provider.pagesReadToday} / ${provider.dailyGoalPages} pages',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
                   book == null
                       ? const _EmptyState()
                       : _ActiveBookView(book: book, dailyGoal: provider.dailyGoalPages),

@@ -1,9 +1,11 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pdfx/pdfx.dart';
 import 'package:provider/provider.dart';
 import '../providers/book_provider.dart';
 import '../providers/reader_preferences_provider.dart';
+import '../providers/highlight_provider.dart';
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({super.key});
@@ -16,15 +18,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
   PdfController? _controller;
   final _audioPlayer = AudioPlayer();
   bool _dialogShowing = false;
+  int _currentPage = 1;
 
   @override
   void initState() {
     super.initState();
     final book = context.read<BookProvider>().activeBook;
     if (book != null && !book.isDoneForToday) {
+      _currentPage = book.currentPage > 0 ? book.currentPage : 1;
       _controller = PdfController(
         document: PdfDocument.openFile(book.filePath),
-        initialPage: book.currentPage > 0 ? book.currentPage : 1,
+        initialPage: _currentPage,
       );
     }
   }
@@ -81,6 +85,85 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
   }
 
+  void _addHighlight() {
+    final book = context.read<BookProvider>().activeBook;
+    if (book == null) return;
+    final textController = TextEditingController();
+    final noteController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Add highlight'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: textController, decoration: const InputDecoration(labelText: 'Highlighted text')),
+            TextField(controller: noteController, decoration: const InputDecoration(labelText: 'Note (optional)')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () async {
+              if (textController.text.trim().isEmpty) return;
+              await context.read<HighlightProvider>().addHighlight(
+                    bookId: book.id,
+                    page: _currentPage,
+                    text: textController.text.trim(),
+                    note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+                  );
+              if (ctx.mounted) Navigator.pop(ctx);
+              HapticFeedback.lightImpact();
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showNotes() {
+    final book = context.read<BookProvider>().activeBook;
+    if (book == null) return;
+    final highlights = context.read<HighlightProvider>().forBook(book.id);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.6,
+        builder: (_, controller) => ListView(
+          controller: controller,
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text('Notes', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            if (highlights.isEmpty)
+              const Padding(padding: EdgeInsets.all(24), child: Text('No notes yet'))
+            else
+              ...highlights.map((h) => ListTile(
+                    title: Text(h.text),
+                    subtitle: Text('Page ${h.page}${h.note != null ? '\n${h.note}' : ''}'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () => context.read<HighlightProvider>().removeHighlight(h.id),
+                    ),
+                  )),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () {
+                final text = context.read<HighlightProvider>().exportForBook(book.id, book.title);
+                Clipboard.setData(ClipboardData(text: text));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notes copied to clipboard')));
+              },
+              child: const Text('Export notes'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bookProvider = context.watch<BookProvider>();
@@ -105,8 +188,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
               actions: [
                 IconButton(
                   icon: Icon(readerPrefs.soundEnabled ? Icons.volume_up : Icons.volume_off),
-                  tooltip: 'Page turn sound',
                   onPressed: () => readerPrefs.setSoundEnabled(!readerPrefs.soundEnabled),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.highlight),
+                  tooltip: 'Add highlight',
+                  onPressed: _addHighlight,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.notes),
+                  tooltip: 'Notes',
+                  onPressed: _showNotes,
                 ),
                 IconButton(
                   icon: const Icon(Icons.done_all),
@@ -123,17 +215,22 @@ class _ReaderScreenState extends State<ReaderScreen> {
         children: [
           GestureDetector(
             onTap: readerPrefs.toggleControls,
-            child: ColorFiltered(
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(1 - readerPrefs.brightness),
-                BlendMode.darken,
-              ),
-              child: PdfView(
-                controller: _controller!,
-                onPageChanged: (page) {
-                  bookProvider.updateProgress(page);
-                  _playPageSound();
-                },
+            child: Padding(
+              padding: EdgeInsets.all(readerPrefs.margin),
+              child: ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(1 - readerPrefs.brightness),
+                  BlendMode.darken,
+                ),
+                child: PdfView(
+                  controller: _controller!,
+                  onPageChanged: (page) {
+                    setState(() => _currentPage = page);
+                    bookProvider.updateProgress(page);
+                    _playPageSound();
+                    HapticFeedback.selectionClick();
+                  },
+                ),
               ),
             ),
           ),
@@ -173,10 +270,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         const Icon(Icons.brightness_high, color: Colors.white70, size: 18),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Brightness',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                    Row(
+                      children: [
+                        const Text('Margin', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                        Expanded(
+                          child: Slider(
+                            value: readerPrefs.margin,
+                            min: 0,
+                            max: 40,
+                            onChanged: readerPrefs.setMargin,
+                            activeColor: Colors.white,
+                            inactiveColor: Colors.white24,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
