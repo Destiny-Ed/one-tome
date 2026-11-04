@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -41,6 +42,34 @@ class _ReaderScreenState extends State<ReaderScreen> {
   Future<void> _checkFile() async {
     final exists = await File(_book.filePath).exists();
     if (mounted) setState(() => _fileExists = exists);
+  }
+
+  Future<void> _replacePdf() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    if (result == null || result.files.single.path == null) return;
+    final provider = context.read<BookProvider>();
+    bool ok = false;
+    if (widget.bookOverride != null) {
+      ok = await provider.replacePdfForHistoryBook(_book.id, result.files.single.path!);
+    } else {
+      ok = await provider.replacePdfForActiveBook(result.files.single.path!);
+    }
+    if (ok && mounted) {
+      _book = widget.bookOverride != null
+          ? provider.history.firstWhere((b) => b.id == _book.id)
+          : provider.activeBook!;
+      setState(() => _fileExists = true);
+    }
+  }
+
+  Future<void> _deleteBook() async {
+    final provider = context.read<BookProvider>();
+    if (widget.bookOverride != null) {
+      await provider.deleteHistoryBook(_book.id);
+    } else {
+      await provider.deleteActiveBook();
+    }
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -194,6 +223,35 @@ class _ReaderScreenState extends State<ReaderScreen> {
     );
   }
 
+  PdfPageLayout _buildLayout(List<PdfPage> pages, PdfViewerParams params, ReadingLayout layout) {
+    final pageLayouts = <Rect>[];
+    if (layout == ReadingLayout.horizontal) {
+      final maxHeight = pages.fold<double>(0, (prev, page) => math.max(prev, page.height));
+      double x = params.margin;
+      for (final page in pages) {
+        final y = (maxHeight - page.height) / 2 + params.margin;
+        pageLayouts.add(Rect.fromLTWH(x, y, page.width, page.height));
+        x += page.width + params.margin * 2;
+      }
+      return PdfPageLayout(
+        pageLayouts: pageLayouts,
+        documentSize: Size(x, maxHeight + params.margin * 2),
+      );
+    } else {
+      final maxWidth = pages.fold<double>(0, (prev, page) => math.max(prev, page.width));
+      double y = params.margin;
+      for (final page in pages) {
+        final x = (maxWidth - page.width) / 2 + params.margin;
+        pageLayouts.add(Rect.fromLTWH(x, y, page.width, page.height));
+        y += page.height + params.margin * 2;
+      }
+      return PdfPageLayout(
+        pageLayouts: pageLayouts,
+        documentSize: Size(maxWidth + params.margin * 2, y),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bookProvider = context.watch<BookProvider>();
@@ -201,8 +259,38 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     if (!_fileExists) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: const Center(child: Text('PDF file not found. It may have been moved or deleted.')),
+        appBar: AppBar(title: const Text('PDF missing')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 72, color: Colors.orange),
+                const SizedBox(height: 24),
+                const Text(
+                  'PDF file not found.\nIt may have been moved or deleted.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 32),
+                FilledButton.icon(
+                  onPressed: _replacePdf,
+                  icon: const Icon(Icons.file_upload),
+                  label: const Text('Replace PDF'),
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _deleteBook,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Delete this book'),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -224,6 +312,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
               backgroundColor: Colors.black.withOpacity(0.7),
               title: Text(_book.title, overflow: TextOverflow.ellipsis),
               actions: [
+                IconButton(
+                  icon: Icon(readerPrefs.layout == ReadingLayout.vertical ? Icons.swap_vert : Icons.swap_horiz),
+                  tooltip: 'Toggle layout',
+                  onPressed: () {
+                    final next = readerPrefs.layout == ReadingLayout.vertical
+                        ? ReadingLayout.horizontal
+                        : ReadingLayout.vertical;
+                    readerPrefs.setLayout(next);
+                    _controller.invalidate();
+                  },
+                ),
                 IconButton(
                   icon: Icon(readerPrefs.soundEnabled ? Icons.volume_up : Icons.volume_off),
                   onPressed: () => readerPrefs.setSoundEnabled(!readerPrefs.soundEnabled),
@@ -267,20 +366,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   controller: _controller,
                   initialPageNumber: _currentPage,
                   params: PdfViewerParams(
-                    layoutPages: (pages, params) {
-                      final maxWidth = pages.fold<double>(0, (prev, page) => math.max(prev, page.width));
-                      final pageLayouts = <Rect>[];
-                      double y = params.margin;
-                      for (final page in pages) {
-                        final x = (maxWidth - page.width) / 2 + params.margin;
-                        pageLayouts.add(Rect.fromLTWH(x, y, page.width, page.height));
-                        y += page.height + params.margin * 2;
-                      }
-                      return PdfPageLayout(
-                        pageLayouts: pageLayouts,
-                        documentSize: Size(maxWidth + params.margin * 2, y),
-                      );
-                    },
+                    layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
                     textSelectionParams: PdfTextSelectionParams(
                       onTextSelectionChange: (selection) async {
                         if (selection.isCopyAllowed) {
