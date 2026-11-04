@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -267,15 +268,18 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   initialPageNumber: _currentPage,
                   params: PdfViewerParams(
                     layoutPages: (pages, params) {
-                      final width = params.viewSize.width;
-                      final height = params.viewSize.height;
-                      return pages.map((page) {
-                        final scale = (width / page.width).clamp(0.1, 10.0);
-                        return PdfPageLayout(
-                          page: page,
-                          rect: Rect.fromLTWH(0, (page.pageNumber - 1) * height, width, height),
-                        );
-                      }).toList();
+                      final maxWidth = pages.fold<double>(0, (prev, page) => math.max(prev, page.width));
+                      final pageLayouts = <Rect>[];
+                      double y = params.margin;
+                      for (final page in pages) {
+                        final x = (maxWidth - page.width) / 2 + params.margin;
+                        pageLayouts.add(Rect.fromLTWH(x, y, page.width, page.height));
+                        y += page.height + params.margin * 2;
+                      }
+                      return PdfPageLayout(
+                        pageLayouts: pageLayouts,
+                        documentSize: Size(maxWidth + params.margin * 2, y),
+                      );
                     },
                     textSelectionParams: PdfTextSelectionParams(
                       onTextSelectionChange: (selection) async {
