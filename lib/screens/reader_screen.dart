@@ -242,6 +242,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       },
                     ),
                     onPageChanged: (page) {
+                      if(page == null) return;
                       setState(() => _currentPage = page);
                       if (widget.trackProgress) {
                         bookProvider.updateProgress(page);
