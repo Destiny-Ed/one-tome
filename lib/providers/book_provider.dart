@@ -142,6 +142,50 @@ class BookProvider extends ChangeNotifier {
     return true;
   }
 
+  Future<bool> replacePdfForActiveBook(String newSourcePath) async {
+    if (_activeBook == null) return false;
+    final localPath = await _copyPdfToAppDir(newSourcePath, _activeBook!.title);
+    _activeBook!.filePath = localPath;
+    await _saveActive();
+    notifyListeners();
+    return true;
+  }
+
+  Future<bool> replacePdfForHistoryBook(String bookId, String newSourcePath) async {
+    final index = _history.indexWhere((b) => b.id == bookId);
+    if (index == -1) return false;
+    final book = _history[index];
+    final localPath = await _copyPdfToAppDir(newSourcePath, book.title);
+    book.filePath = localPath;
+    await _saveHistory();
+    notifyListeners();
+    return true;
+  }
+
+  Future<void> deleteActiveBook() async {
+    if (_activeBook == null) return;
+    try {
+      final file = File(_activeBook!.filePath);
+      if (await file.exists()) await file.delete();
+    } catch (_) {}
+    _activeBook = null;
+    await _saveActive();
+    notifyListeners();
+  }
+
+  Future<void> deleteHistoryBook(String bookId) async {
+    final index = _history.indexWhere((b) => b.id == bookId);
+    if (index == -1) return;
+    final book = _history[index];
+    try {
+      final file = File(book.filePath);
+      if (await file.exists()) await file.delete();
+    } catch (_) {}
+    _history.removeAt(index);
+    await _saveHistory();
+    notifyListeners();
+  }
+
   Future<void> updateProgress(int page) async {
     if (_activeBook == null || _activeBook!.isDoneForToday) return;
     final prev = _activeBook!.currentPage;

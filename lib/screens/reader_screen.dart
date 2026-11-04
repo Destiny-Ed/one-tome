@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -41,6 +42,34 @@ class _ReaderScreenState extends State<ReaderScreen> {
   Future<void> _checkFile() async {
     final exists = await File(_book.filePath).exists();
     if (mounted) setState(() => _fileExists = exists);
+  }
+
+  Future<void> _replacePdf() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    if (result == null || result.files.single.path == null) return;
+    final provider = context.read<BookProvider>();
+    bool ok = false;
+    if (widget.bookOverride != null) {
+      ok = await provider.replacePdfForHistoryBook(_book.id, result.files.single.path!);
+    } else {
+      ok = await provider.replacePdfForActiveBook(result.files.single.path!);
+    }
+    if (ok && mounted) {
+      _book = widget.bookOverride != null
+          ? provider.history.firstWhere((b) => b.id == _book.id)
+          : provider.activeBook!;
+      setState(() => _fileExists = true);
+    }
+  }
+
+  Future<void> _deleteBook() async {
+    final provider = context.read<BookProvider>();
+    if (widget.bookOverride != null) {
+      await provider.deleteHistoryBook(_book.id);
+    } else {
+      await provider.deleteActiveBook();
+    }
+    if (mounted) Navigator.pop(context);
   }
 
   @override
@@ -230,8 +259,38 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     if (!_fileExists) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: const Center(child: Text('PDF file not found. It may have been moved or deleted.')),
+        appBar: AppBar(title: const Text('PDF missing')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 72, color: Colors.orange),
+                const SizedBox(height: 24),
+                const Text(
+                  'PDF file not found.\nIt may have been moved or deleted.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 32),
+                FilledButton.icon(
+                  onPressed: _replacePdf,
+                  icon: const Icon(Icons.file_upload),
+                  label: const Text('Replace PDF'),
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _deleteBook,
+                  icon: const Icon(Icons.delete_outline),
+                  label: const Text('Delete this book'),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 

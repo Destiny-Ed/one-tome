@@ -65,26 +65,62 @@ class _ImportScreenState extends State<ImportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Import PDF')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            FilledButton.tonal(onPressed: _pick, child: const Text('Choose PDF')),
-            if (_detecting) const Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()),
-            if (_path != null && !_detecting) ...[
-              const SizedBox(height: 24),
-              TextField(controller: _titleController, decoration: const InputDecoration(labelText: 'Title')),
+      appBar: AppBar(title: const Text('Import a book')),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               const SizedBox(height: 16),
-              TextField(
-                controller: _pagesController,
-                decoration: const InputDecoration(labelText: 'Total pages (auto-detected)'),
-                keyboardType: TextInputType.number,
+              Icon(Icons.picture_as_pdf_outlined, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.6)),
+              const SizedBox(height: 16),
+              Text('Choose a PDF', style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
+              const SizedBox(height: 8),
+              Text(
+                'We\'ll copy it locally so you can read offline.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              FilledButton(onPressed: _import, child: const Text('Start this book')),
+              FilledButton.tonalIcon(
+                onPressed: _pick,
+                icon: const Icon(Icons.folder_open),
+                label: const Text('Browse PDF'),
+                style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+              ),
+              if (_detecting) ...[
+                const SizedBox(height: 32),
+                const Center(child: CircularProgressIndicator()),
+              ],
+              if (_path != null && !_detecting) ...[
+                const SizedBox(height: 32),
+                TextField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Book title',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _pagesController,
+                  decoration: const InputDecoration(
+                    labelText: 'Total pages',
+                    helperText: 'Auto-detected',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const Spacer(),
+                FilledButton(
+                  onPressed: _import,
+                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
+                  child: const Text('Start this book'),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
