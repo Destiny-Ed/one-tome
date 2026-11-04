@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/reader_preferences_provider.dart';
+import 'providers/notification_provider.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/main_shell.dart';
 import 'services/notification_service.dart';
@@ -15,6 +17,8 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()..load()),
         ChangeNotifierProvider(create: (_) => BookProvider()..load()),
+        ChangeNotifierProvider(create: (_) => ReaderPreferencesProvider()..load()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()..load()),
       ],
       child: const OneTomeApp(),
     ),

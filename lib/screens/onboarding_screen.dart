@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/book_provider.dart';
-import '../services/notification_service.dart';
+import '../providers/notification_provider.dart';
 import 'main_shell.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -16,8 +16,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
   final _pageController = PageController();
   int _currentPage = 0;
   int _dailyGoal = 20;
-  bool _enableReminder = false;
-  TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
   late AnimationController _anim;
 
   final _pages = [
@@ -57,16 +55,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
     super.dispose();
   }
 
-  Future<void> _requestNotificationPermission() async {
-    await NotificationService.requestPermission();
-  }
-
   Future<void> _finish() async {
-    if (_enableReminder) {
-      await _requestNotificationPermission();
-      await NotificationService.scheduleDaily(_reminderTime);
-    }
+    final notificationProvider = context.read<NotificationProvider>();
     await context.read<BookProvider>().completeOnboarding(dailyGoal: _dailyGoal);
+    if (notificationProvider.enabled) {
+      await notificationProvider.setTime(notificationProvider.time);
+    }
     if (mounted) {
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
@@ -90,6 +84,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
   Widget build(BuildContext context) {
     final isLast = _currentPage == _pages.length - 1;
     final theme = Theme.of(context);
+    final notificationProvider = context.watch<NotificationProvider>();
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -170,19 +165,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                                 const SizedBox(height: 32),
                                 SwitchListTile(
                                   title: const Text('Enable daily reminder'),
-                                  value: _enableReminder,
-                                  onChanged: (v) async {
-                                    setState(() => _enableReminder = v);
-                                    if (v) await _requestNotificationPermission();
-                                  },
+                                  value: notificationProvider.enabled,
+                                  onChanged: notificationProvider.setEnabled,
                                 ),
-                                if (_enableReminder)
+                                if (notificationProvider.enabled)
                                   ListTile(
                                     title: const Text('Reminder time'),
-                                    trailing: Text(_reminderTime.format(context)),
+                                    trailing: Text(notificationProvider.time.format(context)),
                                     onTap: () async {
-                                      final t = await showTimePicker(context: context, initialTime: _reminderTime);
-                                      if (t != null) setState(() => _reminderTime = t);
+                                      final t = await showTimePicker(context: context, initialTime: notificationProvider.time);
+                                      if (t != null) notificationProvider.setTime(t);
                                     },
                                   ),
                               ],

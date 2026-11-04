@@ -3,55 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/book_provider.dart';
-import '../services/notification_service.dart';
+import '../providers/notification_provider.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool _reminderEnabled = false;
-  TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
-
-  @override
-  void initState() {
-    super.initState();
-    _loadReminder();
-  }
-
-  Future<void> _loadReminder() async {
-    final enabled = await NotificationService.isReminderEnabled();
-    final time = await NotificationService.getReminderTime();
-    if (mounted) {
-      setState(() {
-        _reminderEnabled = enabled;
-        if (time != null) _reminderTime = time;
-      });
-    }
-  }
-
-  Future<void> _toggleReminder(bool value) async {
-    setState(() => _reminderEnabled = value);
-    if (value) {
-      await NotificationService.requestPermission();
-      await NotificationService.scheduleDaily(_reminderTime);
-    } else {
-      await NotificationService.cancel();
-    }
-  }
-
-  Future<void> _pickTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _reminderTime);
-    if (picked != null) {
-      setState(() => _reminderTime = picked);
-      if (_reminderEnabled) {
-        await NotificationService.scheduleDaily(picked);
-      }
-    }
-  }
 
   void _editGoal(BuildContext context, BookProvider provider) {
     final controller = TextEditingController(text: provider.dailyGoalPages.toString());
@@ -107,6 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final bookProvider = context.watch<BookProvider>();
+    final notificationProvider = context.watch<NotificationProvider>();
 
     return Scaffold(
       body: CustomScrollView(
@@ -158,15 +114,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SwitchListTile(
                       title: const Text('Daily reminder'),
-                      subtitle: Text(_reminderEnabled ? _reminderTime.format(context) : 'Off'),
-                      value: _reminderEnabled,
-                      onChanged: _toggleReminder,
+                      subtitle: Text(notificationProvider.enabled ? notificationProvider.time.format(context) : 'Off'),
+                      value: notificationProvider.enabled,
+                      onChanged: notificationProvider.setEnabled,
                     ),
-                    if (_reminderEnabled)
+                    if (notificationProvider.enabled)
                       ListTile(
                         title: const Text('Reminder time'),
-                        trailing: Text(_reminderTime.format(context)),
-                        onTap: _pickTime,
+                        trailing: Text(notificationProvider.time.format(context)),
+                        onTap: () async {
+                          final picked = await showTimePicker(context: context, initialTime: notificationProvider.time);
+                          if (picked != null) notificationProvider.setTime(picked);
+                        },
                       ),
                   ],
                 ),
