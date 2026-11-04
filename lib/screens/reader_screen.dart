@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:provider/provider.dart';
+import '../models/book.dart';
 import '../providers/book_provider.dart';
 import '../providers/reader_preferences_provider.dart';
 import '../providers/highlight_provider.dart';
 
 class ReaderScreen extends StatefulWidget {
-  const ReaderScreen({super.key});
+  final Book? bookOverride;
+  final bool trackProgress;
+
+  const ReaderScreen({super.key, this.bookOverride, this.trackProgress = true});
 
   @override
   State<ReaderScreen> createState() => _ReaderScreenState();
@@ -20,14 +24,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
   int _currentPage = 1;
   String? _selectedText;
   final _controller = PdfViewerController();
+  late Book _book;
 
   @override
   void initState() {
     super.initState();
-    final book = context.read<BookProvider>().activeBook;
-    if (book != null) {
-      _currentPage = book.currentPage > 0 ? book.currentPage : 1;
-    }
+    final provider = context.read<BookProvider>();
+    _book = widget.bookOverride ?? provider.activeBook!;
+    _currentPage = _book.currentPage > 0 ? _book.currentPage : 1;
   }
 
   @override
@@ -45,7 +49,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 
   Future<void> _checkAndShowGoalDialog() async {
-    if (_dialogShowing) return;
+    if (!widget.trackProgress || _dialogShowing) return;
     final provider = context.read<BookProvider>();
     if (!provider.shouldShowGoalDialog) return;
 
@@ -82,8 +86,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 
   void _createHighlightFromSelection() {
-    final book = context.read<BookProvider>().activeBook;
-    if (book == null || _selectedText == null || _selectedText!.trim().isEmpty) return;
+    if (_selectedText == null || _selectedText!.trim().isEmpty) return;
 
     final noteController = TextEditingController();
     showDialog(
@@ -108,7 +111,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           FilledButton(
             onPressed: () async {
               await context.read<HighlightProvider>().addHighlight(
-                    bookId: book.id,
+                    bookId: _book.id,
                     page: _currentPage,
                     text: _selectedText!.trim(),
                     note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
@@ -125,9 +128,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 
   void _showNotes() {
-    final book = context.read<BookProvider>().activeBook;
-    if (book == null) return;
-    final highlights = context.read<HighlightProvider>().forBook(book.id);
+    final highlights = context.read<HighlightProvider>().forBook(_book.id);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -154,7 +155,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () {
-                final text = context.read<HighlightProvider>().exportForBook(book.id, book.title);
+                final text = context.read<HighlightProvider>().exportForBook(_book.id, _book.title);
                 Clipboard.setData(ClipboardData(text: text));
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notes copied to clipboard')));
               },
@@ -170,23 +171,24 @@ class _ReaderScreenState extends State<ReaderScreen> {
   Widget build(BuildContext context) {
     final bookProvider = context.watch<BookProvider>();
     final readerPrefs = context.watch<ReaderPreferencesProvider>();
-    final book = bookProvider.activeBook;
 
-    if (book == null || book.isDoneForToday) {
+    if (widget.trackProgress && (bookProvider.activeBook == null || bookProvider.activeBook!.isDoneForToday)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.pop(context);
       });
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndShowGoalDialog());
+    if (widget.trackProgress) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndShowGoalDialog());
+    }
 
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: readerPrefs.showControls
           ? AppBar(
               backgroundColor: Colors.black.withOpacity(0.7),
-              title: Text(book.title, overflow: TextOverflow.ellipsis),
+              title: Text(_book.title, overflow: TextOverflow.ellipsis),
               actions: [
                 IconButton(
                   icon: Icon(readerPrefs.soundEnabled ? Icons.volume_up : Icons.volume_off),
@@ -203,14 +205,15 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   tooltip: 'Notes',
                   onPressed: _showNotes,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.done_all),
-                  tooltip: 'Done for today',
-                  onPressed: () async {
-                    await bookProvider.markDoneForToday();
-                    if (mounted) Navigator.pop(context);
-                  },
-                ),
+                if (widget.trackProgress)
+                  IconButton(
+                    icon: const Icon(Icons.done_all),
+                    tooltip: 'Done for today',
+                    onPressed: () async {
+                      await bookProvider.markDoneForToday();
+                      if (mounted) Navigator.pop(context);
+                    },
+                  ),
               ],
             )
           : null,
@@ -226,7 +229,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   BlendMode.darken,
                 ),
                 child: PdfViewer.file(
-                  book.filePath,
+                  _book.filePath,
                   controller: _controller,
                   initialPageNumber: _currentPage,
                   params: PdfViewerParams(
@@ -240,7 +243,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     ),
                     onPageChanged: (page) {
                       setState(() => _currentPage = page);
-                      bookProvider.updateProgress(page);
+                      if (widget.trackProgress) {
+                        bookProvider.updateProgress(page);
+                      }
                       _playPageSound();
                       HapticFeedback.selectionClick();
                     },

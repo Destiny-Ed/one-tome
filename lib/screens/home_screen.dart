@@ -2,9 +2,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../models/book.dart';
 import '../providers/book_provider.dart';
+import '../providers/highlight_provider.dart';
 import 'import_screen.dart';
 import 'reader_screen.dart';
+import 'finished_book_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -13,6 +16,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<BookProvider>();
     final book = provider.activeBook;
+    final history = provider.history;
 
     if (provider.loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -52,17 +56,23 @@ class HomeScreen extends StatelessWidget {
                         label: Text('${provider.streak}-day streak'),
                       ),
                     ),
-                  if (book != null)
+                  if (book != null) ...[
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: 8),
                       child: Text(
                         'Today: ${provider.pagesReadToday} / ${provider.dailyGoalPages} pages',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
-                  book == null
-                      ? const _EmptyState()
-                      : _ActiveBookView(book: book, dailyGoal: provider.dailyGoalPages),
+                    _ActiveBookView(book: book, dailyGoal: provider.dailyGoalPages),
+                    const SizedBox(height: 32),
+                  ] else
+                    const _EmptyState(),
+                  if (history.isNotEmpty) ...[
+                    Text('Finished books', style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 12),
+                    ...history.map((b) => _FinishedBookTile(book: b)),
+                  ],
                 ],
               ),
             ),
@@ -171,6 +181,28 @@ class _ActiveBookView extends StatelessWidget {
   }
 }
 
+class _FinishedBookTile extends StatelessWidget {
+  final Book book;
+  const _FinishedBookTile({required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: const Icon(Icons.check_circle, color: Colors.green),
+        title: Text(book.title),
+        subtitle: Text('Finished ${book.completedAt != null ? DateFormat('MMM d, yyyy').format(book.completedAt!) : ''}'),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => FinishedBookScreen(book: book)),
+        ),
+      ),
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
@@ -178,7 +210,7 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 60),
+        const SizedBox(height: 40),
         Icon(Icons.auto_stories_rounded, size: 100, color: Theme.of(context).colorScheme.primary.withOpacity(0.7)),
         const SizedBox(height: 24),
         Text('One book. Finish it.', style: Theme.of(context).textTheme.headlineMedium),
@@ -190,6 +222,7 @@ class _EmptyState extends StatelessWidget {
           icon: const Icon(Icons.add),
           label: const Text('Start a book'),
         ),
+        const SizedBox(height: 40),
       ],
     );
   }

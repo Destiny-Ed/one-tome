@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
-import 'history_screen.dart';
 import 'settings_screen.dart';
 
 class MainShell extends StatefulWidget {
@@ -16,7 +15,6 @@ class _MainShellState extends State<MainShell> {
 
   final _screens = const [
     HomeScreen(),
-    HistoryScreen(),
     SettingsScreen(),
   ];
 
@@ -50,11 +48,6 @@ class _MainShellState extends State<MainShell> {
                     icon: Icon(Icons.home_outlined),
                     selectedIcon: Icon(Icons.home),
                     label: 'Home',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.history_outlined),
-                    selectedIcon: Icon(Icons.history),
-                    label: 'History',
                   ),
                   NavigationDestination(
                     icon: Icon(Icons.settings_outlined),
