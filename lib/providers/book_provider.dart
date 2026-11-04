@@ -12,6 +12,8 @@ class BookProvider extends ChangeNotifier {
   static const _dailyGoalKey = 'daily_goal';
   static const _streakKey = 'reading_streak';
   static const _lastReadDateKey = 'last_read_date';
+  static const _pagesTodayKey = 'pages_today';
+  static const _pagesTodayDateKey = 'pages_today_date';
 
   Book? _activeBook;
   List<Book> _history = [];
@@ -20,6 +22,8 @@ class BookProvider extends ChangeNotifier {
   int _dailyGoalPages = 20;
   int _streak = 0;
   DateTime? _lastReadDate;
+  int _pagesReadToday = 0;
+  bool _goalDialogShownToday = false;
 
   Book? get activeBook => _activeBook;
   List<Book> get history => List.unmodifiable(_history);
@@ -28,6 +32,9 @@ class BookProvider extends ChangeNotifier {
   bool get hasCompletedOnboarding => _hasCompletedOnboarding;
   int get dailyGoalPages => _dailyGoalPages;
   int get streak => _streak;
+  int get pagesReadToday => _pagesReadToday;
+  bool get hasReachedDailyGoal => _pagesReadToday >= _dailyGoalPages && _dailyGoalPages > 0;
+  bool get shouldShowGoalDialog => hasReachedDailyGoal && !_goalDialogShownToday;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -37,6 +44,16 @@ class BookProvider extends ChangeNotifier {
     final last = prefs.getString(_lastReadDateKey);
     if (last != null) _lastReadDate = DateTime.parse(last);
 
+    final todayStr = _todayKey();
+    final storedDate = prefs.getString(_pagesTodayDateKey);
+    if (storedDate == todayStr) {
+      _pagesReadToday = prefs.getInt(_pagesTodayKey) ?? 0;
+      _goalDialogShownToday = prefs.getBool('goal_dialog_shown_$todayStr') ?? false;
+    } else {
+      _pagesReadToday = 0;
+      _goalDialogShownToday = false;
+    }
+
     final activeJson = prefs.getString(_activeKey);
     if (activeJson != null) {
       _activeBook = Book.fromJsonString(activeJson);
@@ -45,6 +62,11 @@ class BookProvider extends ChangeNotifier {
     _history = historyJson.map(Book.fromJsonString).toList();
     _loading = false;
     notifyListeners();
+  }
+
+  String _todayKey() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month}-${now.day}';
   }
 
   Future<void> completeOnboarding({required int dailyGoal}) async {
@@ -122,14 +144,31 @@ class BookProvider extends ChangeNotifier {
 
   Future<void> updateProgress(int page) async {
     if (_activeBook == null || _activeBook!.isDoneForToday) return;
+    final prev = _activeBook!.currentPage;
     _activeBook!.currentPage = page.clamp(0, _activeBook!.totalPages);
     _activeBook!.lastReadAt = DateTime.now();
+
+    if (_activeBook!.currentPage > prev) {
+      _pagesReadToday += (_activeBook!.currentPage - prev);
+      final prefs = await SharedPreferences.getInstance();
+      final todayStr = _todayKey();
+      await prefs.setInt(_pagesTodayKey, _pagesReadToday);
+      await prefs.setString(_pagesTodayDateKey, todayStr);
+    }
+
     await _updateStreak();
     if (_activeBook!.currentPage >= _activeBook!.totalPages) {
       await completeBook();
       return;
     }
     await _saveActive();
+    notifyListeners();
+  }
+
+  Future<void> markGoalDialogShown() async {
+    _goalDialogShownToday = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('goal_dialog_shown_${_todayKey()}', true);
     notifyListeners();
   }
 
@@ -163,6 +202,8 @@ class BookProvider extends ChangeNotifier {
     _dailyGoalPages = 20;
     _streak = 0;
     _lastReadDate = null;
+    _pagesReadToday = 0;
+    _goalDialogShownToday = false;
     notifyListeners();
   }
 }

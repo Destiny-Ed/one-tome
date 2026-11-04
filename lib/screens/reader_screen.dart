@@ -15,6 +15,7 @@ class ReaderScreen extends StatefulWidget {
 class _ReaderScreenState extends State<ReaderScreen> {
   PdfController? _controller;
   final _audioPlayer = AudioPlayer();
+  bool _dialogShowing = false;
 
   @override
   void initState() {
@@ -43,6 +44,43 @@ class _ReaderScreenState extends State<ReaderScreen> {
     } catch (_) {}
   }
 
+  Future<void> _checkAndShowGoalDialog() async {
+    if (_dialogShowing) return;
+    final provider = context.read<BookProvider>();
+    if (!provider.shouldShowGoalDialog) return;
+
+    _dialogShowing = true;
+    await provider.markGoalDialogShown();
+
+    if (!mounted) return;
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Daily goal reached'),
+        content: Text('You\'ve read ${provider.dailyGoalPages} pages today. Keep going or mark done for today?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Done for today'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+
+    _dialogShowing = false;
+
+    if (result == false && mounted) {
+      await provider.markDoneForToday();
+      if (mounted) Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bookProvider = context.watch<BookProvider>();
@@ -55,6 +93,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
       });
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndShowGoalDialog());
 
     return Scaffold(
       backgroundColor: Colors.black,
