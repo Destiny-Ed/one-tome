@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/book_provider.dart';
 import 'import_screen.dart';
@@ -69,9 +70,25 @@ class _ActiveBookView extends StatelessWidget {
   final int dailyGoal;
   const _ActiveBookView({required this.book, required this.dailyGoal});
 
+  String _estimateCompletion() {
+    final remaining = book.totalPages - book.currentPage;
+    if (remaining <= 0) return 'Completed';
+    if (dailyGoal <= 0) return 'Set a daily goal';
+
+    final daysLeft = (remaining / dailyGoal).ceil();
+    final finishDate = DateTime.now().add(Duration(days: daysLeft));
+    final started = book.addedAt;
+    final startedStr = DateFormat('MMM d').format(started);
+    final finishStr = DateFormat('MMM d, yyyy').format(finishDate);
+
+    return 'Started $startedStr \u2022 Est. finish $finishStr\n(~$daysLeft day${daysLeft == 1 ? '' : 's'} at $dailyGoal pages/day)';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLocked = book.isDoneForToday;
+    final theme = Theme.of(context);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
       child: BackdropFilter(
@@ -86,13 +103,34 @@ class _ActiveBookView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(book.title, style: Theme.of(context).textTheme.headlineSmall),
+              Text(book.title, style: theme.textTheme.headlineSmall),
               const SizedBox(height: 16),
               LinearProgressIndicator(value: book.progress, minHeight: 8, borderRadius: BorderRadius.circular(8)),
               const SizedBox(height: 12),
               Text('${book.currentPage} of ${book.totalPages} pages'),
               const SizedBox(height: 8),
               Text('Daily goal: $dailyGoal pages'),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.schedule, size: 18, color: theme.colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _estimateCompletion(),
+                        style: theme.textTheme.bodyMedium?.copyWith(height: 1.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               if (isLocked) ...[
                 const SizedBox(height: 16),
                 Container(
