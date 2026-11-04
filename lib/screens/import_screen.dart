@@ -1,6 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:pdfx/pdfx.dart';
+import 'package:pdfrx/pdfrx.dart';
 import 'package:provider/provider.dart';
 import '../providers/book_provider.dart';
 
@@ -28,8 +28,8 @@ class _ImportScreenState extends State<ImportScreen> {
       });
       try {
         final doc = await PdfDocument.openFile(path);
-        final pages = doc.pagesCount;
-        await doc.close();
+        final pages = doc.pages.length;
+        await doc.dispose();
         if (mounted) {
           setState(() {
             _pagesController.text = pages.toString();

@@ -1,7 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pdfx/pdfx.dart';
+import 'package:pdfrx/pdfrx.dart';
 import 'package:provider/provider.dart';
 import '../providers/book_provider.dart';
 import '../providers/reader_preferences_provider.dart';
@@ -15,27 +15,23 @@ class ReaderScreen extends StatefulWidget {
 }
 
 class _ReaderScreenState extends State<ReaderScreen> {
-  PdfController? _controller;
   final _audioPlayer = AudioPlayer();
   bool _dialogShowing = false;
   int _currentPage = 1;
+  String? _selectedText;
+  final _controller = PdfViewerController();
 
   @override
   void initState() {
     super.initState();
     final book = context.read<BookProvider>().activeBook;
-    if (book != null && !book.isDoneForToday) {
+    if (book != null) {
       _currentPage = book.currentPage > 0 ? book.currentPage : 1;
-      _controller = PdfController(
-        document: PdfDocument.openFile(book.filePath),
-        initialPage: _currentPage,
-      );
     }
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -85,35 +81,41 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
   }
 
-  void _addHighlight() {
+  void _createHighlightFromSelection() {
     final book = context.read<BookProvider>().activeBook;
-    if (book == null) return;
-    final textController = TextEditingController();
+    if (book == null || _selectedText == null || _selectedText!.trim().isEmpty) return;
+
     final noteController = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Add highlight'),
+        title: const Text('Highlight'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(controller: textController, decoration: const InputDecoration(labelText: 'Highlighted text')),
-            TextField(controller: noteController, decoration: const InputDecoration(labelText: 'Note (optional)')),
+            Text(_selectedText!, style: const TextStyle(fontStyle: FontStyle.italic)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: noteController,
+              decoration: const InputDecoration(labelText: 'Add a note (optional)'),
+              maxLines: 3,
+            ),
           ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
             onPressed: () async {
-              if (textController.text.trim().isEmpty) return;
               await context.read<HighlightProvider>().addHighlight(
                     bookId: book.id,
                     page: _currentPage,
-                    text: textController.text.trim(),
+                    text: _selectedText!.trim(),
                     note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
                   );
               if (ctx.mounted) Navigator.pop(ctx);
               HapticFeedback.lightImpact();
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Highlight saved')));
             },
             child: const Text('Save'),
           ),
@@ -170,7 +172,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final readerPrefs = context.watch<ReaderPreferencesProvider>();
     final book = bookProvider.activeBook;
 
-    if (book == null || book.isDoneForToday || _controller == null) {
+    if (book == null || book.isDoneForToday) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.pop(context);
       });
@@ -190,11 +192,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   icon: Icon(readerPrefs.soundEnabled ? Icons.volume_up : Icons.volume_off),
                   onPressed: () => readerPrefs.setSoundEnabled(!readerPrefs.soundEnabled),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.highlight),
-                  tooltip: 'Add highlight',
-                  onPressed: _addHighlight,
-                ),
+                if (_selectedText != null && _selectedText!.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.highlight),
+                    tooltip: 'Highlight selection',
+                    onPressed: _createHighlightFromSelection,
+                  ),
                 IconButton(
                   icon: const Icon(Icons.notes),
                   tooltip: 'Notes',
@@ -222,14 +225,26 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   Colors.black.withOpacity(1 - readerPrefs.brightness),
                   BlendMode.darken,
                 ),
-                child: PdfView(
-                  controller: _controller!,
-                  onPageChanged: (page) {
-                    setState(() => _currentPage = page);
-                    bookProvider.updateProgress(page);
-                    _playPageSound();
-                    HapticFeedback.selectionClick();
-                  },
+                child: PdfViewer.file(
+                  book.filePath,
+                  controller: _controller,
+                  initialPageNumber: _currentPage,
+                  params: PdfViewerParams(
+                    textSelectionParams: PdfTextSelectionParams(
+                      onTextSelectionChange: (selection) async {
+                        if (selection.isCopyAllowed) {
+                          final text = await selection.getSelectedText();
+                          if (mounted) setState(() => _selectedText = text);
+                        }
+                      },
+                    ),
+                    onPageChanged: (page) {
+                      setState(() => _currentPage = page);
+                      bookProvider.updateProgress(page);
+                      _playPageSound();
+                      HapticFeedback.selectionClick();
+                    },
+                  ),
                 ),
               ),
             ),
