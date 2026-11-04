@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/book.dart';
 import '../providers/book_provider.dart';
-import '../providers/highlight_provider.dart';
 import 'import_screen.dart';
 import 'reader_screen.dart';
 import 'finished_book_screen.dart';
@@ -71,7 +70,7 @@ class HomeScreen extends StatelessWidget {
                   if (history.isNotEmpty) ...[
                     Text('Finished books', style: Theme.of(context).textTheme.titleLarge),
                     const SizedBox(height: 12),
-                    ...history.map((b) => _FinishedBookTile(book: b)),
+                    ...history.map((b) => _FinishedBookCard(book: b)),
                   ],
                 ],
               ),
@@ -181,22 +180,46 @@ class _ActiveBookView extends StatelessWidget {
   }
 }
 
-class _FinishedBookTile extends StatelessWidget {
+class _FinishedBookCard extends StatelessWidget {
   final Book book;
-  const _FinishedBookTile({required this.book});
+  const _FinishedBookCard({required this.book});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: const Icon(Icons.check_circle, color: Colors.green),
-        title: Text(book.title),
-        subtitle: Text('Finished ${book.completedAt != null ? DateFormat('MMM d, yyyy').format(book.completedAt!) : ''}'),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => FinishedBookScreen(book: book)),
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.12)),
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              leading: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_circle, color: Colors.green),
+              ),
+              title: Text(book.title, style: theme.textTheme.titleMedium),
+              subtitle: Text(
+                'Finished ${book.completedAt != null ? DateFormat('MMM d, yyyy').format(book.completedAt!) : ''}',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => FinishedBookScreen(book: book)),
+              ),
+            ),
+          ),
         ),
       ),
     );

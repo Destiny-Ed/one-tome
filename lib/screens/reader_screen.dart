@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,6 +26,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   String? _selectedText;
   final _controller = PdfViewerController();
   late Book _book;
+  bool _fileExists = true;
 
   @override
   void initState() {
@@ -32,6 +34,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final provider = context.read<BookProvider>();
     _book = widget.bookOverride ?? provider.activeBook!;
     _currentPage = _book.currentPage > 0 ? _book.currentPage : 1;
+    _checkFile();
+  }
+
+  Future<void> _checkFile() async {
+    final exists = await File(_book.filePath).exists();
+    if (mounted) setState(() => _fileExists = exists);
   }
 
   @override
@@ -93,18 +101,36 @@ class _ReaderScreenState extends State<ReaderScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Highlight'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_selectedText!, style: const TextStyle(fontStyle: FontStyle.italic)),
-            const SizedBox(height: 16),
-            TextField(
-              controller: noteController,
-              decoration: const InputDecoration(labelText: 'Add a note (optional)'),
-              maxLines: 3,
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 400, maxWidth: 400),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    _selectedText!,
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: noteController,
+                  decoration: const InputDecoration(
+                    labelText: 'Add a note (optional)',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 4,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
@@ -172,6 +198,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final bookProvider = context.watch<BookProvider>();
     final readerPrefs = context.watch<ReaderPreferencesProvider>();
 
+    if (!_fileExists) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: const Center(child: Text('PDF file not found. It may have been moved or deleted.')),
+      );
+    }
+
     if (widget.trackProgress && (bookProvider.activeBook == null || bookProvider.activeBook!.isDoneForToday)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.pop(context);
@@ -233,6 +266,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   controller: _controller,
                   initialPageNumber: _currentPage,
                   params: PdfViewerParams(
+                    layoutPages: (pages, params) {
+                      final width = params.viewSize.width;
+                      final height = params.viewSize.height;
+                      return pages.map((page) {
+                        final scale = (width / page.width).clamp(0.1, 10.0);
+                        return PdfPageLayout(
+                          page: page,
+                          rect: Rect.fromLTWH(0, (page.pageNumber - 1) * height, width, height),
+                        );
+                      }).toList();
+                    },
                     textSelectionParams: PdfTextSelectionParams(
                       onTextSelectionChange: (selection) async {
                         if (selection.isCopyAllowed) {
@@ -242,7 +286,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       },
                     ),
                     onPageChanged: (page) {
-                      if(page == null) return;
+                      if (page == null) return;
                       setState(() => _currentPage = page);
                       if (widget.trackProgress) {
                         bookProvider.updateProgress(page);
