@@ -10,12 +10,16 @@ class BookProvider extends ChangeNotifier {
   static const _historyKey = 'book_history';
   static const _onboardingKey = 'onboarding_done';
   static const _dailyGoalKey = 'daily_goal';
+  static const _streakKey = 'reading_streak';
+  static const _lastReadDateKey = 'last_read_date';
 
   Book? _activeBook;
   List<Book> _history = [];
   bool _loading = true;
   bool _hasCompletedOnboarding = false;
   int _dailyGoalPages = 20;
+  int _streak = 0;
+  DateTime? _lastReadDate;
 
   Book? get activeBook => _activeBook;
   List<Book> get history => List.unmodifiable(_history);
@@ -23,11 +27,15 @@ class BookProvider extends ChangeNotifier {
   bool get hasActiveBook => _activeBook != null && !_activeBook!.isCompleted;
   bool get hasCompletedOnboarding => _hasCompletedOnboarding;
   int get dailyGoalPages => _dailyGoalPages;
+  int get streak => _streak;
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
     _hasCompletedOnboarding = prefs.getBool(_onboardingKey) ?? false;
     _dailyGoalPages = prefs.getInt(_dailyGoalKey) ?? 20;
+    _streak = prefs.getInt(_streakKey) ?? 0;
+    final last = prefs.getString(_lastReadDateKey);
+    if (last != null) _lastReadDate = DateTime.parse(last);
 
     final activeJson = prefs.getString(_activeKey);
     if (activeJson != null) {
@@ -47,6 +55,33 @@ class BookProvider extends ChangeNotifier {
     await prefs.setInt(_dailyGoalKey, dailyGoal);
     notifyListeners();
   }
+
+  Future<void> updateDailyGoal(int pages) async {
+    _dailyGoalPages = pages;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_dailyGoalKey, pages);
+    notifyListeners();
+  }
+
+  Future<void> _updateStreak() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (_lastReadDate == null || !_isSameDay(_lastReadDate!, today)) {
+      final yesterday = today.subtract(const Duration(days: 1));
+      if (_lastReadDate != null && _isSameDay(_lastReadDate!, yesterday)) {
+        _streak++;
+      } else {
+        _streak = 1;
+      }
+      _lastReadDate = today;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt(_streakKey, _streak);
+      await prefs.setString(_lastReadDateKey, today.toIso8601String());
+    }
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   Future<void> _saveActive() async {
     final prefs = await SharedPreferences.getInstance();
@@ -89,6 +124,7 @@ class BookProvider extends ChangeNotifier {
     if (_activeBook == null || _activeBook!.isDoneForToday) return;
     _activeBook!.currentPage = page.clamp(0, _activeBook!.totalPages);
     _activeBook!.lastReadAt = DateTime.now();
+    await _updateStreak();
     if (_activeBook!.currentPage >= _activeBook!.totalPages) {
       await completeBook();
       return;
@@ -101,6 +137,7 @@ class BookProvider extends ChangeNotifier {
     if (_activeBook == null) return;
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     _activeBook!.doneForTodayUntil = DateTime(tomorrow.year, tomorrow.month, tomorrow.day);
+    await _updateStreak();
     await _saveActive();
     notifyListeners();
   }
@@ -114,6 +151,18 @@ class BookProvider extends ChangeNotifier {
     _activeBook = null;
     await _saveActive();
     await _saveHistory();
+    notifyListeners();
+  }
+
+  Future<void> clearAllData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    _activeBook = null;
+    _history.clear();
+    _hasCompletedOnboarding = false;
+    _dailyGoalPages = 20;
+    _streak = 0;
+    _lastReadDate = null;
     notifyListeners();
   }
 }

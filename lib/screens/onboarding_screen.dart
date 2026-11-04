@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/book_provider.dart';
+import '../services/notification_service.dart';
 import 'main_shell.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -14,6 +15,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
   int _dailyGoal = 20;
+  bool _enableReminder = false;
+  TimeOfDay _reminderTime = const TimeOfDay(hour: 20, minute: 0);
 
   final _pages = [
     {
@@ -31,14 +34,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'subtitle': 'How many pages do you want to aim for each day?',
       'icon': Icons.flag_rounded,
     },
+    {
+      'title': 'Daily reminder',
+      'subtitle': 'Would you like a gentle reminder to read each day?',
+      'icon': Icons.notifications_active_rounded,
+    },
   ];
+
+  Future<void> _finish() async {
+    await context.read<BookProvider>().completeOnboarding(dailyGoal: _dailyGoal);
+    if (_enableReminder) {
+      await NotificationService.scheduleDaily(_reminderTime);
+    }
+    if (mounted) {
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const MainShell()));
+    }
+  }
 
   void _next() {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeOutCubic);
     } else {
-      context.read<BookProvider>().completeOnboarding(dailyGoal: _dailyGoal);
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const MainShell()));
+      _finish();
     }
   }
 
@@ -77,6 +94,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             label: '$_dailyGoal',
                             onChanged: (v) => setState(() => _dailyGoal = v.round()),
                           ),
+                        ],
+                        if (i == 3) ...[
+                          const SizedBox(height: 24),
+                          SwitchListTile(
+                            title: const Text('Enable daily reminder'),
+                            value: _enableReminder,
+                            onChanged: (v) => setState(() => _enableReminder = v),
+                          ),
+                          if (_enableReminder)
+                            ListTile(
+                              title: const Text('Reminder time'),
+                              trailing: Text(_reminderTime.format(context)),
+                              onTap: () async {
+                                final t = await showTimePicker(context: context, initialTime: _reminderTime);
+                                if (t != null) setState(() => _reminderTime = t);
+                              },
+                            ),
                         ],
                       ],
                     ),
