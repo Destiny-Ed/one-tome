@@ -10,6 +10,7 @@ import '../models/book.dart';
 import '../providers/book_provider.dart';
 import '../providers/reader_preferences_provider.dart';
 import '../providers/highlight_provider.dart';
+import '../widgets/app_bottom_sheet.dart';
 
 class ReaderScreen extends StatefulWidget {
   final Book? bookOverride;
@@ -96,23 +97,23 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     if (!mounted) return;
 
-    final result = await showDialog<bool>(
+    final result = await AppBottomSheet.show<bool>(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Daily goal reached'),
-        content: Text('You\'ve read ${provider.dailyGoalPages} pages today. Keep going or mark done for today?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Done for today'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Continue'),
-          ),
-        ],
-      ),
+      title: 'Daily goal reached',
+      child: Text('You\'ve read ${provider.dailyGoalPages} pages today. Keep going or mark done for today?'),
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          child: const Text('Continue'),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: () => Navigator.pop(context, false),
+          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          child: const Text('Done for today'),
+        ),
+      ],
     );
 
     _dialogShowing = false;
@@ -127,59 +128,52 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (_selectedText == null || _selectedText!.trim().isEmpty) return;
 
     final noteController = TextEditingController();
-    showDialog(
+    AppBottomSheet.show(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Highlight'),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 400, maxWidth: 400),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _selectedText!,
-                    style: const TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: noteController,
-                  decoration: const InputDecoration(
-                    labelText: 'Add a note (optional)',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 4,
-                ),
-              ],
+      title: 'Highlight',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.amber.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              _selectedText!,
+              style: const TextStyle(fontStyle: FontStyle.italic),
             ),
           ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () async {
-              await context.read<HighlightProvider>().addHighlight(
-                    bookId: _book.id,
-                    page: _currentPage,
-                    text: _selectedText!.trim(),
-                    note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
-                  );
-              if (ctx.mounted) Navigator.pop(ctx);
-              HapticFeedback.lightImpact();
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Highlight saved')));
-            },
-            child: const Text('Save'),
+          const SizedBox(height: 16),
+          TextField(
+            controller: noteController,
+            decoration: const InputDecoration(
+              labelText: 'Add a note (optional)',
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 4,
           ),
         ],
       ),
+      actions: [
+        FilledButton(
+          onPressed: () async {
+            await context.read<HighlightProvider>().addHighlight(
+                  bookId: _book.id,
+                  page: _currentPage,
+                  text: _selectedText!.trim(),
+                  note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+                );
+            if (mounted) Navigator.pop(context);
+            HapticFeedback.lightImpact();
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Highlight saved')));
+          },
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          child: const Text('Save'),
+        ),
+      ],
     );
   }
 
@@ -188,36 +182,55 @@ class _ReaderScreenState extends State<ReaderScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (ctx) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.6,
-        builder: (_, controller) => ListView(
-          controller: controller,
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text('Notes', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            if (highlights.isEmpty)
-              const Padding(padding: EdgeInsets.all(24), child: Text('No notes yet'))
-            else
-              ...highlights.map((h) => ListTile(
-                    title: Text(h.text),
-                    subtitle: Text('Page ${h.page}${h.note != null ? '\n${h.note}' : ''}'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => context.read<HighlightProvider>().removeHighlight(h.id),
-                    ),
-                  )),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () {
-                final text = context.read<HighlightProvider>().exportForBook(_book.id, _book.title);
-                Clipboard.setData(ClipboardData(text: text));
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notes copied to clipboard')));
-              },
-              child: const Text('Export notes'),
-            ),
-          ],
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(ctx).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.6,
+          builder: (_, controller) => ListView(
+            controller: controller,
+            padding: const EdgeInsets.all(20),
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Text('Notes', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              if (highlights.isEmpty)
+                const Padding(padding: EdgeInsets.all(24), child: Text('No notes yet'))
+              else
+                ...highlights.map((h) => ListTile(
+                      title: Text(h.text),
+                      subtitle: Text('Page ${h.page}${h.note != null ? '\n${h.note}' : ''}'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => context.read<HighlightProvider>().removeHighlight(h.id),
+                      ),
+                    )),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () {
+                  final text = context.read<HighlightProvider>().exportForBook(_book.id, _book.title);
+                  Clipboard.setData(ClipboardData(text: text));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notes copied to clipboard')));
+                },
+                style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                child: const Text('Export notes'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -344,7 +357,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     tooltip: 'Done for today',
                     onPressed: () async {
                       await bookProvider.markDoneForToday();
-                      // if (mounted) Navigator.pop(context);
+                      if (mounted) Navigator.pop(context);
                     },
                   ),
               ],
