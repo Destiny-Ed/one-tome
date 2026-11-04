@@ -194,6 +194,35 @@ class _ReaderScreenState extends State<ReaderScreen> {
     );
   }
 
+  PdfPageLayout _buildLayout(List<PdfPage> pages, PdfViewerParams params, ReadingLayout layout) {
+    final pageLayouts = <Rect>[];
+    if (layout == ReadingLayout.horizontal) {
+      final maxHeight = pages.fold<double>(0, (prev, page) => math.max(prev, page.height));
+      double x = params.margin;
+      for (final page in pages) {
+        final y = (maxHeight - page.height) / 2 + params.margin;
+        pageLayouts.add(Rect.fromLTWH(x, y, page.width, page.height));
+        x += page.width + params.margin * 2;
+      }
+      return PdfPageLayout(
+        pageLayouts: pageLayouts,
+        documentSize: Size(x, maxHeight + params.margin * 2),
+      );
+    } else {
+      final maxWidth = pages.fold<double>(0, (prev, page) => math.max(prev, page.width));
+      double y = params.margin;
+      for (final page in pages) {
+        final x = (maxWidth - page.width) / 2 + params.margin;
+        pageLayouts.add(Rect.fromLTWH(x, y, page.width, page.height));
+        y += page.height + params.margin * 2;
+      }
+      return PdfPageLayout(
+        pageLayouts: pageLayouts,
+        documentSize: Size(maxWidth + params.margin * 2, y),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bookProvider = context.watch<BookProvider>();
@@ -224,6 +253,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
               backgroundColor: Colors.black.withOpacity(0.7),
               title: Text(_book.title, overflow: TextOverflow.ellipsis),
               actions: [
+                IconButton(
+                  icon: Icon(readerPrefs.layout == ReadingLayout.vertical ? Icons.swap_vert : Icons.swap_horiz),
+                  tooltip: 'Toggle layout',
+                  onPressed: () {
+                    final next = readerPrefs.layout == ReadingLayout.vertical
+                        ? ReadingLayout.horizontal
+                        : ReadingLayout.vertical;
+                    readerPrefs.setLayout(next);
+                    _controller.invalidate();
+                  },
+                ),
                 IconButton(
                   icon: Icon(readerPrefs.soundEnabled ? Icons.volume_up : Icons.volume_off),
                   onPressed: () => readerPrefs.setSoundEnabled(!readerPrefs.soundEnabled),
@@ -267,20 +307,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   controller: _controller,
                   initialPageNumber: _currentPage,
                   params: PdfViewerParams(
-                    layoutPages: (pages, params) {
-                      final maxWidth = pages.fold<double>(0, (prev, page) => math.max(prev, page.width));
-                      final pageLayouts = <Rect>[];
-                      double y = params.margin;
-                      for (final page in pages) {
-                        final x = (maxWidth - page.width) / 2 + params.margin;
-                        pageLayouts.add(Rect.fromLTWH(x, y, page.width, page.height));
-                        y += page.height + params.margin * 2;
-                      }
-                      return PdfPageLayout(
-                        pageLayouts: pageLayouts,
-                        documentSize: Size(maxWidth + params.margin * 2, y),
-                      );
-                    },
+                    layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
                     textSelectionParams: PdfTextSelectionParams(
                       onTextSelectionChange: (selection) async {
                         if (selection.isCopyAllowed) {
