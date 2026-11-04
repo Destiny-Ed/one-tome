@@ -97,7 +97,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   tooltip: 'Done for today',
                   onPressed: () async {
                     await provider.markDoneForToday();
-                    if (mounted) Navigator.pop(context);
                   },
                 ),
               ],
