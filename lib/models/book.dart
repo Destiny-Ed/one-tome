@@ -3,7 +3,7 @@ import 'dart:convert';
 class Book {
   final String id;
   final String title;
-  final String filePath;
+  String filePath;
   final int totalPages;
   int currentPage;
   bool isCompleted;
