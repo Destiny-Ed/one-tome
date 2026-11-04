@@ -12,47 +12,59 @@ class OnboardingScreen extends StatefulWidget {
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerProviderStateMixin {
+class _OnboardingScreenState extends State<OnboardingScreen> with TickerProviderStateMixin {
   final _pageController = PageController();
   int _currentPage = 0;
   int _dailyGoal = 20;
-  late AnimationController _anim;
+  late AnimationController _fadeAnim;
+  late AnimationController _scaleAnim;
 
   final _pages = [
     {
       'title': 'One book.\nFinish it.',
-      'subtitle': 'Focus on a single PDF until the last page. No more unfinished books gathering dust.',
+      'subtitle': 'Focus on a single PDF until the last page.\nNo more unfinished books.',
       'icon': Icons.menu_book_rounded,
     },
     {
       'title': 'Progress that\nfeels real',
-      'subtitle': 'Mark pages done or “done for today”. Come back tomorrow and continue exactly where you left off.',
-      'icon': Icons.today_rounded,
+      'subtitle': 'Mark pages done or “done for today”.\nCome back tomorrow and continue exactly where you left off.',
+      'icon': Icons.auto_stories_rounded,
     },
     {
-      'title': 'Your daily\nreading goal',
+      'title': 'Set your\ndaily goal',
       'subtitle': 'How many pages do you want to aim for each day?',
       'icon': Icons.flag_rounded,
     },
     {
-      'title': 'Gentle daily\nreminder',
-      'subtitle': 'A quiet nudge at the time that works for you.',
-      'icon': Icons.notifications_active_rounded,
+      'title': 'A gentle\nnudge',
+      'subtitle': 'Optional reminder at a time that works for you.',
+      'icon': Icons.notifications_none_rounded,
     },
   ];
 
   @override
   void initState() {
     super.initState();
-    _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
-    _anim.forward();
+    _fadeAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
+    _scaleAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    _fadeAnim.forward();
+    _scaleAnim.forward();
   }
 
   @override
   void dispose() {
-    _anim.dispose();
+    _fadeAnim.dispose();
+    _scaleAnim.dispose();
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _onPageChanged(int i) {
+    setState(() => _currentPage = i);
+    _fadeAnim.reset();
+    _scaleAnim.reset();
+    _fadeAnim.forward();
+    _scaleAnim.forward();
   }
 
   Future<void> _finish() async {
@@ -65,8 +77,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (_, __, ___) => const MainShell(),
-          transitionsBuilder: (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
-          transitionDuration: const Duration(milliseconds: 500),
+          transitionsBuilder: (_, anim, __, child) => FadeTransition(
+            opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+            child: child,
+          ),
+          transitionDuration: const Duration(milliseconds: 600),
         ),
       );
     }
@@ -74,7 +89,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
 
   void _next() {
     if (_currentPage < _pages.length - 1) {
-      _pageController.nextPage(duration: const Duration(milliseconds: 500), curve: Curves.easeOutCubic);
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 650),
+        curve: Curves.easeOutCubic,
+      );
     } else {
       _finish();
     }
@@ -91,15 +109,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
       child: Scaffold(
         body: Stack(
           children: [
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 600),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: [
-                    theme.colorScheme.primary.withOpacity(0.15),
+                    theme.colorScheme.primary.withOpacity(0.12),
                     theme.colorScheme.surface,
-                    theme.colorScheme.secondary.withOpacity(0.08),
+                    theme.colorScheme.surface,
                   ],
                 ),
               ),
@@ -111,47 +130,62 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                     child: PageView.builder(
                       controller: _pageController,
                       itemCount: _pages.length,
-                      onPageChanged: (i) {
-                        setState(() => _currentPage = i);
-                        _anim.reset();
-                        _anim.forward();
-                      },
+                      onPageChanged: _onPageChanged,
                       itemBuilder: (context, i) {
                         final page = _pages[i];
                         return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 36),
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              FadeTransition(
-                                opacity: _anim,
-                                child: Icon(
-                                  page['icon'] as IconData,
-                                  size: 120,
-                                  color: theme.colorScheme.primary,
+                              ScaleTransition(
+                                scale: CurvedAnimation(parent: _scaleAnim, curve: Curves.easeOutBack),
+                                child: FadeTransition(
+                                  opacity: _fadeAnim,
+                                  child: Container(
+                                    width: 140,
+                                    height: 140,
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primary.withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      page['icon'] as IconData,
+                                      size: 72,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 48),
-                              Text(
-                                page['title'] as String,
-                                style: theme.textTheme.headlineLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.15,
+                              const SizedBox(height: 56),
+                              FadeTransition(
+                                opacity: _fadeAnim,
+                                child: Text(
+                                  page['title'] as String,
+                                  style: theme.textTheme.headlineLarge?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.1,
+                                    letterSpacing: -0.5,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 20),
-                              Text(
-                                page['subtitle'] as String,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: theme.colorScheme.onSurface.withOpacity(0.7),
-                                  height: 1.5,
+                              FadeTransition(
+                                opacity: _fadeAnim,
+                                child: Text(
+                                  page['subtitle'] as String,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.colorScheme.onSurface.withOpacity(0.65),
+                                    height: 1.55,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
                               if (i == 2) ...[
-                                const SizedBox(height: 40),
+                                const SizedBox(height: 48),
                                 Text('$_dailyGoal pages / day', style: theme.textTheme.titleLarge),
+                                const SizedBox(height: 8),
                                 Slider(
                                   value: _dailyGoal.toDouble(),
                                   min: 5,
@@ -162,14 +196,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                                 ),
                               ],
                               if (i == 3) ...[
-                                const SizedBox(height: 32),
+                                const SizedBox(height: 40),
                                 SwitchListTile(
-                                  title: const Text('Enable daily reminder'),
+                                  contentPadding: EdgeInsets.zero,
+                                  title: const Text('Daily reminder'),
                                   value: notificationProvider.enabled,
                                   onChanged: notificationProvider.setEnabled,
                                 ),
                                 if (notificationProvider.enabled)
                                   ListTile(
+                                    contentPadding: EdgeInsets.zero,
                                     title: const Text('Reminder time'),
                                     trailing: Text(notificationProvider.time.format(context)),
                                     onTap: () async {
@@ -185,7 +221,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
                     child: Column(
                       children: [
                         Row(
@@ -193,25 +229,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> with SingleTickerPr
                           children: List.generate(
                             _pages.length,
                             (i) => AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.easeOut,
                               margin: const EdgeInsets.symmetric(horizontal: 4),
-                              height: 8,
-                              width: _currentPage == i ? 24 : 8,
+                              height: 6,
+                              width: _currentPage == i ? 28 : 6,
                               decoration: BoxDecoration(
                                 color: _currentPage == i
                                     ? theme.colorScheme.primary
-                                    : theme.colorScheme.primary.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(4),
+                                    : theme.colorScheme.primary.withOpacity(0.25),
+                                borderRadius: BorderRadius.circular(3),
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 28),
                         FilledButton(
                           onPressed: _next,
                           style: FilledButton.styleFrom(
                             minimumSize: const Size.fromHeight(56),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            elevation: 0,
                           ),
                           child: Text(isLast ? 'Begin your first tome' : 'Continue'),
                         ),
