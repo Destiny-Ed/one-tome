@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../providers/book_provider.dart';
 import 'import_screen.dart';
 import 'reader_screen.dart';
-import 'history_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,111 +11,131 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<BookProvider>();
+    final book = provider.activeBook;
+    final theme = Theme.of(context);
 
     if (provider.loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('OneTome'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar.large(
+            title: const Text('OneTome'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  if (provider.hasActiveBook) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Finish your current book before starting another one.')),
+                    );
+                  } else {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportScreen()));
+                  }
+                },
+              ),
+            ],
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(20),
+            sliver: SliverToBoxAdapter(
+              child: book == null
+                  ? _EmptyState()
+                  : _ActiveBookView(book: book, dailyGoal: provider.dailyGoalPages),
+            ),
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: provider.hasActiveBook
-              ? _ActiveBookCard(book: provider.activeBook!)
-              : const _EmptyState(),
-        ),
-      ),
-      floatingActionButton: provider.hasActiveBook
-          ? null
-          : FloatingActionButton.extended(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportScreen())),
-              label: const Text('Start a book'),
-              icon: const Icon(Icons.add),
-            ),
     );
   }
 }
 
-class _ActiveBookCard extends StatelessWidget {
+class _ActiveBookView extends StatelessWidget {
   final dynamic book;
-  const _ActiveBookCard({required this.book});
+  final int dailyGoal;
+  const _ActiveBookView({required this.book, required this.dailyGoal});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+    final isLocked = book.isDoneForToday;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(28),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withOpacity(0.2)),
+                color: Colors.white.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: Colors.white.withOpacity(0.18)),
               ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(book.title, style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
+                  Text(book.title, style: Theme.of(context).textTheme.headlineSmall),
                   const SizedBox(height: 16),
-                  LinearProgressIndicator(value: book.progress),
+                  LinearProgressIndicator(value: book.progress, minHeight: 8, borderRadius: BorderRadius.circular(8)),
+                  const SizedBox(height: 12),
+                  Text('${book.currentPage} of ${book.totalPages} pages'),
                   const SizedBox(height: 8),
-                  Text('${book.currentPage} / ${book.totalPages} pages'),
+                  Text('Daily goal: $dailyGoal pages'),
+                  if (isLocked) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.lock_clock, color: Colors.amber),
+                          SizedBox(width: 8),
+                          Expanded(child: Text('Done for today. Come back tomorrow to continue.')),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
-                  FilledButton(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReaderScreen())),
-                    child: const Text('Continue reading'),
+                  FilledButton.icon(
+                    onPressed: isLocked ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReaderScreen())),
+                    icon: Icon(isLocked ? Icons.lock : Icons.play_arrow),
+                    label: Text(isLocked ? 'Locked until tomorrow' : 'Continue reading'),
+                    style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
                   ),
                 ],
               ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.menu_book_outlined, size: 80, color: Colors.grey),
-          SizedBox(height: 16),
-          Text('One book. Finish it.', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
-          SizedBox(height: 8),
-          Text('Import a PDF to begin', style: TextStyle(color: Colors.grey)),
-        ],
-      ),
+    return Column(
+      children: [
+        const SizedBox(height: 60),
+        Icon(Icons.auto_stories_rounded, size: 100, color: Theme.of(context).colorScheme.primary.withOpacity(0.7)),
+        const SizedBox(height: 24),
+        Text('One book. Finish it.', style: Theme.of(context).textTheme.headlineMedium),
+        const SizedBox(height: 12),
+        const Text('Import a PDF to begin your first tome.', textAlign: TextAlign.center),
+        const SizedBox(height: 32),
+        FilledButton.icon(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportScreen())),
+          icon: const Icon(Icons.add),
+          label: const Text('Start a book'),
+        ),
+      ],
     );
   }
 }

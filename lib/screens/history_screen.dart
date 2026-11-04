@@ -12,7 +12,7 @@ class HistoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Finished books')),
       body: history.isEmpty
-          ? const Center(child: Text('No completed books yet'))
+          ? const Center(child: Text('No completed books yet.\nFinish your first tome to see it here.'))
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: history.length,
@@ -20,9 +20,9 @@ class HistoryScreen extends StatelessWidget {
                 final book = history[i];
                 return Card(
                   child: ListTile(
+                    leading: const Icon(Icons.check_circle, color: Colors.green),
                     title: Text(book.title),
                     subtitle: Text('Finished ${book.completedAt?.toLocal().toString().split(' ')[0] ?? ''}'),
-                    trailing: const Icon(Icons.check_circle, color: Colors.green),
                   ),
                 );
               },
