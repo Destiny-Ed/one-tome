@@ -9,7 +9,8 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   void _editGoal(BuildContext context, BookProvider provider) {
-    final controller = TextEditingController(text: provider.dailyGoalPages.toString());
+    final controller =
+        TextEditingController(text: provider.dailyGoalPages.toString());
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -20,10 +21,12 @@ class SettingsScreen extends StatelessWidget {
           decoration: const InputDecoration(labelText: 'Pages per day'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
             onPressed: () {
-              final pages = int.tryParse(controller.text) ?? provider.dailyGoalPages;
+              final pages =
+                  int.tryParse(controller.text) ?? provider.dailyGoalPages;
               provider.updateDailyGoal(pages.clamp(5, 200));
               Navigator.pop(ctx);
             },
@@ -39,16 +42,19 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Clear all data?'),
-        content: const Text('This will remove your current book, history, streak, and reset onboarding. This cannot be undone.'),
+        content: const Text(
+            'This will remove your current book, history, streak, and reset onboarding. This cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {
               await context.read<BookProvider>().clearAllData();
               if (ctx.mounted) Navigator.pop(ctx);
               if (context.mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil('/', (route) => false);
               }
             },
             child: const Text('Clear everything'),
@@ -78,23 +84,32 @@ class SettingsScreen extends StatelessWidget {
                 _GlassSection(
                   title: 'Appearance',
                   children: [
-                    RadioListTile<ThemeMode>(
-                      title: const Text('System'),
-                      value: ThemeMode.system,
-                      groupValue: themeProvider.themeMode,
-                      onChanged: (v) => themeProvider.setThemeMode(v!),
+                    Material(
+                      color: Colors.transparent,
+                      child: RadioListTile<ThemeMode>(
+                        title: const Text('System'),
+                        value: ThemeMode.system,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (v) => themeProvider.setThemeMode(v!),
+                      ),
                     ),
-                    RadioListTile<ThemeMode>(
-                      title: const Text('Light'),
-                      value: ThemeMode.light,
-                      groupValue: themeProvider.themeMode,
-                      onChanged: (v) => themeProvider.setThemeMode(v!),
+                    Material(
+                      color: Colors.transparent,
+                      child: RadioListTile<ThemeMode>(
+                        title: const Text('Light'),
+                        value: ThemeMode.light,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (v) => themeProvider.setThemeMode(v!),
+                      ),
                     ),
-                    RadioListTile<ThemeMode>(
-                      title: const Text('Dark'),
-                      value: ThemeMode.dark,
-                      groupValue: themeProvider.themeMode,
-                      onChanged: (v) => themeProvider.setThemeMode(v!),
+                    Material(
+                      color: Colors.transparent,
+                      child: RadioListTile<ThemeMode>(
+                        title: const Text('Dark'),
+                        value: ThemeMode.dark,
+                        groupValue: themeProvider.themeMode,
+                        onChanged: (v) => themeProvider.setThemeMode(v!),
+                      ),
                     ),
                   ],
                 ),
@@ -102,30 +117,49 @@ class SettingsScreen extends StatelessWidget {
                 _GlassSection(
                   title: 'Reading',
                   children: [
-                    ListTile(
-                      title: const Text('Daily goal'),
-                      subtitle: Text('${bookProvider.dailyGoalPages} pages'),
-                      trailing: const Icon(Icons.edit),
-                      onTap: () => _editGoal(context, bookProvider),
+                    Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        title: const Text('Daily goal'),
+                        subtitle: Text('${bookProvider.dailyGoalPages} pages'),
+                        trailing: const Icon(Icons.edit),
+                        onTap: () => _editGoal(context, bookProvider),
+                      ),
                     ),
-                    ListTile(
-                      title: const Text('Current streak'),
-                      subtitle: Text('${bookProvider.streak} day${bookProvider.streak == 1 ? '' : 's'}'),
+                    Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        title: const Text('Current streak'),
+                        subtitle: Text(
+                            '${bookProvider.streak} day${bookProvider.streak == 1 ? '' : 's'}'),
+                      ),
                     ),
-                    SwitchListTile(
-                      title: const Text('Daily reminder'),
-                      subtitle: Text(notificationProvider.enabled ? notificationProvider.time.format(context) : 'Off'),
-                      value: notificationProvider.enabled,
-                      onChanged: notificationProvider.setEnabled,
+                    Material(
+                      color: Colors.transparent,
+                      child: SwitchListTile(
+                        title: const Text('Daily reminder'),
+                        subtitle: Text(notificationProvider.enabled
+                            ? notificationProvider.time.format(context)
+                            : 'Off'),
+                        value: notificationProvider.enabled,
+                        onChanged: notificationProvider.setEnabled,
+                      ),
                     ),
                     if (notificationProvider.enabled)
-                      ListTile(
-                        title: const Text('Reminder time'),
-                        trailing: Text(notificationProvider.time.format(context)),
-                        onTap: () async {
-                          final picked = await showTimePicker(context: context, initialTime: notificationProvider.time);
-                          if (picked != null) notificationProvider.setTime(picked);
-                        },
+                      Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          title: const Text('Reminder time'),
+                          trailing:
+                              Text(notificationProvider.time.format(context)),
+                          onTap: () async {
+                            final picked = await showTimePicker(
+                                context: context,
+                                initialTime: notificationProvider.time);
+                            if (picked != null)
+                              notificationProvider.setTime(picked);
+                          },
+                        ),
                       ),
                   ],
                 ),
@@ -133,21 +167,30 @@ class SettingsScreen extends StatelessWidget {
                 _GlassSection(
                   title: 'Data',
                   children: [
-                    ListTile(
-                      title: const Text('Clear all data'),
-                      subtitle: const Text('Reset onboarding and remove all books'),
-                      leading: const Icon(Icons.delete_forever, color: Colors.red),
-                      onTap: () => _confirmClear(context),
+                    Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        title: const Text('Clear all data'),
+                        subtitle:
+                            const Text('Reset onboarding and remove all books'),
+                        leading:
+                            const Icon(Icons.delete_forever, color: Colors.red),
+                        onTap: () => _confirmClear(context),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                _GlassSection(
+                const _GlassSection(
                   title: 'About',
-                  children: const [
-                    ListTile(
-                      title: Text('OneTome'),
-                      subtitle: Text('One book. Finish it.\nLocal-first PDF reader'),
+                  children: [
+                    Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        title: Text('OneTome'),
+                        subtitle: Text(
+                            'One book. Finish it.\nLocal-first PDF reader'),
+                      ),
                     ),
                   ],
                 ),
@@ -182,7 +225,11 @@ class _GlassSection extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                child: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                child: Text(title,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600)),
               ),
               ...children,
               const SizedBox(height: 8),

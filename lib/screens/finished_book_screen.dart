@@ -58,9 +58,12 @@ class FinishedBookScreen extends StatelessWidget {
             )
           else
             ...highlights.map((h) => Card(
-                  child: ListTile(
-                    title: Text(h.text),
-                    subtitle: Text('Page ${h.page}${h.note != null ? '\n${h.note}' : ''}'),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: ListTile(
+                      title: Text(h.text),
+                      subtitle: Text('Page ${h.page}${h.note != null ? '\n${h.note}' : ''}'),
+                    ),
                   ),
                 )),
           if (highlights.isNotEmpty) ...[
