@@ -36,6 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _toggleReminder(bool value) async {
     setState(() => _reminderEnabled = value);
     if (value) {
+      await NotificationService.requestPermission();
       await NotificationService.scheduleDaily(_reminderTime);
     } else {
       await NotificationService.cancel();
@@ -110,9 +111,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          const SliverAppBar.large(title: Text('Settings')),
+          const SliverAppBar.large(
+            title: Text('Settings'),
+            pinned: true,
+          ),
           SliverPadding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _GlassSection(
@@ -207,7 +211,7 @@ class _GlassSection extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.08),
@@ -218,10 +222,11 @@ class _GlassSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+                child: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
               ),
               ...children,
+              const SizedBox(height: 8),
             ],
           ),
         ),
