@@ -25,28 +25,28 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         centerTitle: false,
         title: const Text('OneTome'),
-        actions: [
-          FilledButton.icon(
-            onPressed: () {
-              if (provider.hasActiveBook) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text(
-                          'Finish your current book before starting another one.')),
-                );
-              } else {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const ImportScreen()));
-              }
-            },
-            icon: const Icon(Icons.add),
-            label: const Text(
-              'Import Book',
-            ),
-            // style:
-            //     FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-          ),
-        ],
+        // actions: [
+        //   FilledButton.icon(
+        //     onPressed: () {
+        //       if (provider.hasActiveBook) {
+        //         ScaffoldMessenger.of(context).showSnackBar(
+        //           const SnackBar(
+        //               content: Text(
+        //                   'Finish your current book before starting another one.')),
+        //         );
+        //       } else {
+        //         Navigator.push(context,
+        //             MaterialPageRoute(builder: (_) => const ImportScreen()));
+        //       }
+        //     },
+        //     icon: const Icon(Icons.add),
+        //     label: const Text(
+        //       'Import Book',
+        //     ),
+        //     // style:
+        //     //     FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+        //   ),
+        // ],
       ),
       body: CustomScrollView(
         slivers: [
@@ -262,27 +262,29 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 40),
-        Icon(Icons.auto_stories_rounded,
-            size: 100,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.7)),
-        const SizedBox(height: 24),
-        Text('One book. Finish it.',
-            style: Theme.of(context).textTheme.headlineMedium),
-        const SizedBox(height: 12),
-        const Text('Import a PDF to begin your first tome.',
-            textAlign: TextAlign.center),
-        const SizedBox(height: 32),
-        FilledButton.icon(
-          onPressed: () => Navigator.push(
-              context, MaterialPageRoute(builder: (_) => const ImportScreen())),
-          icon: const Icon(Icons.add),
-          label: const Text('Start a book'),
-        ),
-        const SizedBox(height: 40),
-      ],
+    return Center(
+      child: Column(
+        children: [
+          const SizedBox(height: 40),
+          Icon(Icons.auto_stories_rounded,
+              size: 100,
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.7)),
+          const SizedBox(height: 24),
+          Text('One book. Finish it.',
+              style: Theme.of(context).textTheme.headlineMedium),
+          const SizedBox(height: 12),
+          const Text('Import a PDF to begin your first tome.',
+              textAlign: TextAlign.center),
+          const SizedBox(height: 32),
+          FilledButton.icon(
+            onPressed: () => Navigator.push(
+                context, MaterialPageRoute(builder: (_) => const ImportScreen())),
+            icon: const Icon(Icons.add),
+            label: const Text('Start a book'),
+          ),
+          const SizedBox(height: 40),
+        ],
+      ),
     );
   }
 }
