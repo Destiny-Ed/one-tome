@@ -163,6 +163,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
   }
 
+  Future<void> _onPageChanged(int? page) async {
+    if (page == null) return;
+    setState(() => _currentPage = page);
+    if (widget.trackProgress) {
+      await context.read<BookProvider>().updateProgress(page);
+      if (mounted) await _checkAndShowGoalDialog();
+    }
+    _playPageSound();
+    HapticFeedback.selectionClick();
+  }
+
   void _createHighlightFromSelection() {
     if (_selectedText == null || _selectedText!.trim().isEmpty) return;
 
@@ -477,10 +488,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
       );
     }
 
-    if (widget.trackProgress) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndShowGoalDialog());
-    }
-
     final body = Stack(
       children: [
         GestureDetector(
@@ -504,15 +511,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     }
                   },
                 ),
-                onPageChanged: (page) {
-                  if (page == null) return;
-                  setState(() => _currentPage = page);
-                  if (widget.trackProgress) {
-                    bookProvider.updateProgress(page);
-                  }
-                  _playPageSound();
-                  HapticFeedback.selectionClick();
-                },
+                onPageChanged: _onPageChanged,
               ),
             ),
           ),
