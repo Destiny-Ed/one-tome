@@ -258,10 +258,6 @@ class BookProvider extends ChangeNotifier {
     }
 
     await _updateStreak();
-    if (_activeBook!.currentPage >= _activeBook!.totalPages) {
-      await completeBook();
-      return;
-    }
     await _saveActive();
     notifyListeners();
   }
