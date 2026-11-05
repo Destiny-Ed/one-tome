@@ -17,8 +17,8 @@ class NotificationService {
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
-    await _plugin
-        .initialize(settings: const InitializationSettings(android: android, iOS: ios));
+    await _plugin.initialize(
+        settings: const InitializationSettings(android: android, iOS: ios));
     _initialized = true;
   }
 
