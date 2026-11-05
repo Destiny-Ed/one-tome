@@ -213,7 +213,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
               children: [
                 Icon(_nightMode ? Icons.dark_mode : Icons.light_mode, color: AppTheme.primary, size: 20),
                 const SizedBox(width: 12),
-                Expanded(child: Text(_nightMode ? 'Night mode' : 'Light mode', style: TextStyle(color: AppTheme.textPrimary(ctx)))),
+                Expanded(child: Text(_nightMode ? 'Night shift' : 'Light mode', style: TextStyle(color: AppTheme.textPrimary(ctx)))),
                 Switch(
                   value: _nightMode,
                   activeColor: AppTheme.primary,
@@ -409,10 +409,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
   Widget build(BuildContext context) {
     final bookProvider = context.watch<BookProvider>();
     final readerPrefs = context.watch<ReaderPreferencesProvider>();
-    final isDark = _nightMode || Theme.of(context).brightness == Brightness.dark;
-    final bg = _nightMode ? Colors.black : AppTheme.background(context);
-    final appBarBg = _nightMode ? Colors.black : AppTheme.surface(context);
-    final fg = _nightMode ? Colors.white : AppTheme.textPrimary(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = _nightMode ? const Color(0xFF1A1208) : AppTheme.background(context);
+    final appBarBg = _nightMode ? const Color(0xFF1A1208) : AppTheme.surface(context);
+    final fg = _nightMode ? const Color(0xFFFFE8C8) : AppTheme.textPrimary(context);
 
     if (!_fileExists) {
       return Scaffold(
@@ -454,117 +454,132 @@ class _ReaderScreenState extends State<ReaderScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndShowGoalDialog());
     }
 
-    return Scaffold(
-      backgroundColor: bg,
-      appBar: AppBar(
-        backgroundColor: appBarBg,
-        foregroundColor: fg,
-        title: Text(_book.title, overflow: TextOverflow.ellipsis),
-        actions: [
-          if (_selectedText != null && _selectedText!.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.highlight),
-              tooltip: 'Highlight selection',
-              onPressed: _createHighlightFromSelection,
-            ),
-          IconButton(
-            icon: Icon(_nightMode ? Icons.dark_mode : Icons.light_mode),
-            tooltip: 'Toggle night mode',
-            onPressed: () => setState(() => _nightMode = !_nightMode),
-          ),
-          IconButton(
-            icon: const Icon(Icons.tune),
-            tooltip: 'Reading settings',
-            onPressed: _showReaderSettings,
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert),
-            tooltip: 'More',
-            onPressed: _showReaderActions,
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          GestureDetector(
-            onTap: readerPrefs.toggleControls,
-            child: ColorFiltered(
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(1 - readerPrefs.brightness),
-                BlendMode.darken,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: _nightMode ? SystemUiOverlayStyle.light : (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark),
+      child: Scaffold(
+        backgroundColor: bg,
+        appBar: AppBar(
+          backgroundColor: appBarBg,
+          foregroundColor: fg,
+          title: Text(_book.title, overflow: TextOverflow.ellipsis),
+          actions: [
+            if (_selectedText != null && _selectedText!.isNotEmpty)
+              IconButton(
+                icon: const Icon(Icons.highlight),
+                tooltip: 'Highlight selection',
+                onPressed: _createHighlightFromSelection,
               ),
-              child: PdfViewer.file(
-                _book.filePath,
-                controller: _controller,
-                initialPageNumber: _currentPage,
-                params: PdfViewerParams(
-                  layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
-                  textSelectionParams: PdfTextSelectionParams(
-                    onTextSelectionChange: (selection) async {
-                      if (selection.isCopyAllowed) {
-                        final text = await selection.getSelectedText();
-                        if (mounted) setState(() => _selectedText = text);
+            IconButton(
+              icon: Icon(_nightMode ? Icons.nightlight_round : Icons.light_mode),
+              tooltip: 'Night shift',
+              onPressed: () => setState(() => _nightMode = !_nightMode),
+            ),
+            IconButton(
+              icon: const Icon(Icons.tune),
+              tooltip: 'Reading settings',
+              onPressed: _showReaderSettings,
+            ),
+            IconButton(
+              icon: const Icon(Icons.more_vert),
+              tooltip: 'More',
+              onPressed: _showReaderActions,
+            ),
+          ],
+        ),
+        body: Stack(
+          children: [
+            GestureDetector(
+              onTap: readerPrefs.toggleControls,
+              child: ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(1 - readerPrefs.brightness),
+                  BlendMode.darken,
+                ),
+                child: PdfViewer.file(
+                  _book.filePath,
+                  controller: _controller,
+                  initialPageNumber: _currentPage,
+                  params: PdfViewerParams(
+                    layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
+                    textSelectionParams: PdfTextSelectionParams(
+                      onTextSelectionChange: (selection) async {
+                        if (selection.isCopyAllowed) {
+                          final text = await selection.getSelectedText();
+                          if (mounted) setState(() => _selectedText = text);
+                        }
+                      },
+                    ),
+                    onPageChanged: (page) {
+                      if (page == null) return;
+                      setState(() => _currentPage = page);
+                      if (widget.trackProgress) {
+                        bookProvider.updateProgress(page);
                       }
+                      _playPageSound();
+                      HapticFeedback.selectionClick();
                     },
                   ),
-                  onPageChanged: (page) {
-                    if (page == null) return;
-                    setState(() => _currentPage = page);
-                    if (widget.trackProgress) {
-                      bookProvider.updateProgress(page);
-                    }
-                    _playPageSound();
-                    HapticFeedback.selectionClick();
-                  },
                 ),
               ),
             ),
-          ),
-          if (readerPrefs.showControls)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-                decoration: BoxDecoration(
-                  color: appBarBg,
-                  border: Border(top: BorderSide(color: isDark ? Colors.grey.shade800 : Colors.grey.shade200)),
+            if (_nightMode)
+              IgnorePointer(
+                child: ColorFiltered(
+                  colorFilter: const ColorFilter.matrix([
+                    1.1, 0.0, 0.0, 0, 20,
+                    0.0, 0.85, 0.0, 0, 10,
+                    0.0, 0.0, 0.55, 0, 0,
+                    0, 0, 0, 1, 0,
+                  ]),
+                  child: Container(color: Colors.white),
                 ),
-                child: SafeArea(
-                  top: false,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.chevron_left, color: fg),
-                        onPressed: _currentPage > 1 ? () => _goToPage(_currentPage - 1) : null,
-                      ),
-                      Text('$_currentPage / ${_book.totalPages}', style: TextStyle(color: fg, fontWeight: FontWeight.w600)),
-                      IconButton(
-                        icon: Icon(Icons.chevron_right, color: fg),
-                        onPressed: _currentPage < _book.totalPages ? () => _goToPage(_currentPage + 1) : null,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.zoom_out, color: fg),
-                        onPressed: () {
-                          _controller.zoomDown();
-                          setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 3.0));
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.zoom_in, color: fg),
-                        onPressed: () {
-                          _controller.zoomUp();
-                          setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 3.0));
-                        },
-                      ),
-                    ],
+              ),
+            if (readerPrefs.showControls)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                  decoration: BoxDecoration(
+                    color: appBarBg,
+                    border: Border(top: BorderSide(color: _nightMode ? const Color(0xFF3D2E1A) : (isDark ? Colors.grey.shade800 : Colors.grey.shade200))),
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.chevron_left, color: fg),
+                          onPressed: _currentPage > 1 ? () => _goToPage(_currentPage - 1) : null,
+                        ),
+                        Text('$_currentPage / ${_book.totalPages}', style: TextStyle(color: fg, fontWeight: FontWeight.w600)),
+                        IconButton(
+                          icon: Icon(Icons.chevron_right, color: fg),
+                          onPressed: _currentPage < _book.totalPages ? () => _goToPage(_currentPage + 1) : null,
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.zoom_out, color: fg),
+                          onPressed: () {
+                            _controller.zoomDown();
+                            setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 3.0));
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.zoom_in, color: fg),
+                          onPressed: () {
+                            _controller.zoomUp();
+                            setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 3.0));
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
