@@ -9,6 +9,8 @@ class AppBottomSheet {
     required Widget child,
     List<Widget>? actions,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return showModalBottomSheet<T>(
       context: context,
       isScrollControlled: true,
@@ -16,9 +18,9 @@ class AppBottomSheet {
       builder: (ctx) => Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.darkSurface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
           child: SafeArea(
@@ -33,7 +35,7 @@ class AppBottomSheet {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -43,25 +45,28 @@ class AppBottomSheet {
                     Expanded(
                       child: Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.navy,
+                          color: AppTheme.textPrimary(ctx),
                         ),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: AppTheme.navy),
+                      icon: Icon(Icons.close, color: AppTheme.textPrimary(ctx)),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 4),
-                  Text(subtitle, style: const TextStyle(color: AppTheme.textMuted, height: 1.4)),
+                  Text(subtitle, style: TextStyle(color: AppTheme.textSecondary(ctx), height: 1.4)),
                 ],
                 const SizedBox(height: 16),
-                child,
+                DefaultTextStyle(
+                  style: TextStyle(color: AppTheme.textPrimary(ctx), fontSize: 15, height: 1.4),
+                  child: child,
+                ),
                 if (actions != null) ...[
                   const SizedBox(height: 20),
                   ...actions,

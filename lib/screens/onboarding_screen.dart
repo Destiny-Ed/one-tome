@@ -77,12 +77,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final isLast = _currentPage == _pages.length - 1;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final notificationProvider = context.watch<NotificationProvider>();
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.background(context),
         body: SafeArea(
           child: Column(
             children: [
@@ -96,7 +97,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         margin: EdgeInsets.only(right: i < _pages.length - 1 ? 6 : 0),
                         height: 3,
                         decoration: BoxDecoration(
-                          color: i <= _currentPage ? AppTheme.primary : Colors.grey.shade200,
+                          color: i <= _currentPage
+                              ? AppTheme.primary
+                              : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -130,9 +133,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           const SizedBox(height: 16),
                           Text(
                             page['subtitle'] as String,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
-                              color: AppTheme.textMuted,
+                              color: AppTheme.textSecondary(context),
                               height: 1.5,
                             ),
                           ),
@@ -143,15 +146,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 children: [
                                   Text(
                                     '$_dailyGoal',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 72,
                                       fontWeight: FontWeight.w700,
-                                      color: AppTheme.navy,
+                                      color: AppTheme.textPrimary(context),
                                       height: 1,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  const Text('pages / day', style: TextStyle(fontSize: 18, color: AppTheme.textMuted)),
+                                  Text('pages / day', style: TextStyle(fontSize: 18, color: AppTheme.textSecondary(context))),
                                 ],
                               ),
                             ),
@@ -162,13 +165,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               max: 100,
                               divisions: 19,
                               activeColor: AppTheme.primary,
-                              inactiveColor: Colors.grey.shade200,
+                              inactiveColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
                               onChanged: (v) => setState(() => _dailyGoal = v.round()),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
+                            Text(
                               'Most people finish a book in 2–4 weeks at this pace.',
-                              style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
+                              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context)),
                             ),
                           ],
                           if (i == 3) ...[
@@ -176,15 +179,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             Container(
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: AppTheme.softBg,
+                                color: AppTheme.surface(context),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Column(
                                 children: [
                                   Row(
                                     children: [
-                                      const Expanded(
-                                        child: Text('Daily reminder', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.navy, fontSize: 16)),
+                                      Expanded(
+                                        child: Text('Daily reminder', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context), fontSize: 16)),
                                       ),
                                       Switch(
                                         value: notificationProvider.enabled,
@@ -195,7 +198,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   ),
                                   if (notificationProvider.enabled) ...[
                                     const SizedBox(height: 12),
-                                    const Divider(height: 1),
+                                    Divider(height: 1, color: isDark ? Colors.grey.shade800 : Colors.grey.shade200),
                                     const SizedBox(height: 12),
                                     InkWell(
                                       onTap: () async {
@@ -206,13 +209,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                         children: [
                                           const Icon(Icons.access_time, color: AppTheme.primary, size: 20),
                                           const SizedBox(width: 12),
-                                          const Expanded(child: Text('Reminder time', style: TextStyle(color: AppTheme.navy))),
+                                          Expanded(child: Text('Reminder time', style: TextStyle(color: AppTheme.textPrimary(context)))),
                                           Text(
                                             notificationProvider.time.format(context),
                                             style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.primary),
                                           ),
                                           const SizedBox(width: 4),
-                                          const Icon(Icons.chevron_right, color: AppTheme.textMuted, size: 18),
+                                          Icon(Icons.chevron_right, color: AppTheme.textSecondary(context), size: 18),
                                         ],
                                       ),
                                     ),
@@ -233,7 +236,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: FilledButton(
                   onPressed: _next,
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppTheme.navy,
+                    backgroundColor: isDark ? AppTheme.accent : AppTheme.navy,
                     minimumSize: const Size.fromHeight(56),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
