@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:one_tome/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/reader_preferences_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/highlight_provider.dart';
-import 'screens/splash_screen.dart';
+import 'screens/onboarding_screen.dart';
+import 'screens/main_shell.dart';
 import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 
@@ -32,6 +34,7 @@ class OneTomeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final bookProvider = context.watch<BookProvider>();
 
     return MaterialApp(
       title: 'OneTome',
@@ -39,7 +42,9 @@ class OneTomeApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeProvider.themeMode,
-      home: const SplashScreen(),
+      home: bookProvider.hasCompletedOnboarding
+          ? const MainShell()
+          : const SplashScreen(),
     );
   }
 }
