@@ -10,26 +10,44 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   void _editGoal(BuildContext context, BookProvider provider) {
-    final controller =
-        TextEditingController(text: provider.dailyGoalPages.toString());
+    var goal = provider.dailyGoalPages;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     AppBottomSheet.show(
       context: context,
       title: 'Daily reading goal',
       subtitle: 'How many pages do you want to aim for each day?',
-      child: TextField(
-        controller: controller,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          labelText: 'Pages per day',
-          border: OutlineInputBorder(),
+      child: StatefulBuilder(
+        builder: (ctx, setSheetState) => Column(
+          children: [
+            Text(
+              '$goal',
+              style: TextStyle(
+                fontSize: 56,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary(ctx),
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text('pages / day', style: TextStyle(fontSize: 15, color: AppTheme.textSecondary(ctx))),
+            const SizedBox(height: 8),
+            Slider(
+              value: goal.toDouble(),
+              min: 5,
+              max: 100,
+              divisions: 19,
+              activeColor: AppTheme.primary,
+              inactiveColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+              onChanged: (v) => setSheetState(() => goal = v.round()),
+            ),
+          ],
         ),
       ),
       actions: [
         FilledButton(
           onPressed: () {
-            final pages =
-                int.tryParse(controller.text) ?? provider.dailyGoalPages;
-            provider.updateDailyGoal(pages.clamp(5, 200));
+            provider.updateDailyGoal(goal);
             Navigator.pop(context);
           },
           child: const Text('Save'),
@@ -43,8 +61,7 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       title: 'Clear all data?',
       subtitle: 'This cannot be undone.',
-      child: const Text(
-          'This will remove your current book, history, streak, and reset onboarding.'),
+      child: const Text('This will remove your current book, history, streak, and reset onboarding.'),
       actions: [
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -52,8 +69,7 @@ class SettingsScreen extends StatelessWidget {
             await context.read<BookProvider>().clearAllData();
             if (context.mounted) {
               Navigator.pop(context);
-              Navigator.of(context)
-                  .pushNamedAndRemoveUntil('/', (route) => false);
+              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
             }
           },
           child: const Text('Clear everything'),
@@ -123,15 +139,12 @@ class SettingsScreen extends StatelessWidget {
                     _SettingRow(
                       icon: Icons.local_fire_department_outlined,
                       title: 'Current streak',
-                      subtitle:
-                          '${bookProvider.streak} day${bookProvider.streak == 1 ? '' : 's'}',
+                      subtitle: '${bookProvider.streak} day${bookProvider.streak == 1 ? '' : 's'}',
                     ),
                     _SettingRow(
                       icon: Icons.notifications_none,
                       title: 'Daily reminder',
-                      subtitle: notificationProvider.enabled
-                          ? notificationProvider.time.format(context)
-                          : 'Off',
+                      subtitle: notificationProvider.enabled ? notificationProvider.time.format(context) : 'Off',
                       trailing: Switch(
                         value: notificationProvider.enabled,
                         activeColor: AppTheme.primary,
@@ -144,11 +157,8 @@ class SettingsScreen extends StatelessWidget {
                         title: 'Reminder time',
                         subtitle: notificationProvider.time.format(context),
                         onTap: () async {
-                          final picked = await showTimePicker(
-                              context: context,
-                              initialTime: notificationProvider.time);
-                          if (picked != null)
-                            notificationProvider.setTime(picked);
+                          final picked = await showTimePicker(context: context, initialTime: notificationProvider.time);
+                          if (picked != null) notificationProvider.setTime(picked);
                         },
                       ),
                   ],
@@ -256,31 +266,20 @@ class _SettingRow extends StatelessWidget {
                   color: (iconColor ?? AppTheme.primary).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child:
-                    Icon(icon, size: 18, color: iconColor ?? AppTheme.primary),
+                child: Icon(icon, size: 18, color: iconColor ?? AppTheme.primary),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary(context))),
+                    Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context))),
                     const SizedBox(height: 2),
-                    Text(subtitle,
-                        style: TextStyle(
-                            fontSize: 13,
-                            color: AppTheme.textSecondary(context))),
+                    Text(subtitle, style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context))),
                   ],
                 ),
               ),
-              if (trailing != null)
-                trailing!
-              else if (onTap != null)
-                Icon(Icons.chevron_right,
-                    color: AppTheme.textSecondary(context), size: 20),
+              if (trailing != null) trailing! else if (onTap != null) Icon(Icons.chevron_right, color: AppTheme.textSecondary(context), size: 20),
             ],
           ),
         ),
@@ -324,10 +323,7 @@ class _ThemeOption extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               Expanded(
-                child: Text(label,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: AppTheme.textPrimary(context))),
+                child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
               ),
               if (selected)
                 Container(
