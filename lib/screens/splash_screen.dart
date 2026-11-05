@@ -29,10 +29,26 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
 
   Future<void> _goNext() async {
-    await Future.delayed(const Duration(milliseconds: 1600));
-    if (!mounted) return;
     final bookProvider = context.read<BookProvider>();
-    final next = bookProvider.hasCompletedOnboarding ? const MainShell() : const OnboardingScreen();
+
+    // Wait until prefs have been loaded so onboarding state is known.
+    final start = DateTime.now();
+    while (bookProvider.loading && DateTime.now().difference(start).inSeconds < 5) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    // Minimum splash time so the animation is visible.
+    final elapsed = DateTime.now().difference(start);
+    if (elapsed < const Duration(milliseconds: 1200)) {
+      await Future.delayed(const Duration(milliseconds: 1200) - elapsed);
+    }
+
+    if (!mounted) return;
+
+    final next = bookProvider.hasCompletedOnboarding
+        ? const MainShell()
+        : const OnboardingScreen();
+
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => next,
