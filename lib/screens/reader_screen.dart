@@ -96,11 +96,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
     setState(() => _currentPage = target);
   }
 
-  void _zoomBy(double delta) {
-    setState(() => _zoom = (_zoom + delta).clamp(0.6, 3.0));
-    try {
-      _controller.zoom(_zoom);
-    } catch (_) {}
+  void _applyZoom(double value) {
+    final clamped = value.clamp(0.6, 3.0);
+    setState(() => _zoom = clamped);
+    final size = _controller.viewSize;
+    final center = Offset(size.width / 2, size.height / 2);
+    _controller.setZoom(center, clamped);
   }
 
   Future<void> _markDoneAndLeave() async {
@@ -253,11 +254,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     max: 3.0,
                     activeColor: AppTheme.primary,
                     onChanged: (v) {
-                      setState(() => _zoom = v);
+                      _applyZoom(v);
                       setSheetState(() {});
-                      try {
-                        _controller.zoom(v);
-                      } catch (_) {}
                     },
                   ),
                 ),
@@ -495,32 +493,29 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 Colors.black.withOpacity(1 - readerPrefs.brightness),
                 BlendMode.darken,
               ),
-              child: Transform.scale(
-                scale: _zoom,
-                child: PdfViewer.file(
-                  _book.filePath,
-                  controller: _controller,
-                  initialPageNumber: _currentPage,
-                  params: PdfViewerParams(
-                    layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
-                    textSelectionParams: PdfTextSelectionParams(
-                      onTextSelectionChange: (selection) async {
-                        if (selection.isCopyAllowed) {
-                          final text = await selection.getSelectedText();
-                          if (mounted) setState(() => _selectedText = text);
-                        }
-                      },
-                    ),
-                    onPageChanged: (page) {
-                      if (page == null) return;
-                      setState(() => _currentPage = page);
-                      if (widget.trackProgress) {
-                        bookProvider.updateProgress(page);
+              child: PdfViewer.file(
+                _book.filePath,
+                controller: _controller,
+                initialPageNumber: _currentPage,
+                params: PdfViewerParams(
+                  layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
+                  textSelectionParams: PdfTextSelectionParams(
+                    onTextSelectionChange: (selection) async {
+                      if (selection.isCopyAllowed) {
+                        final text = await selection.getSelectedText();
+                        if (mounted) setState(() => _selectedText = text);
                       }
-                      _playPageSound();
-                      HapticFeedback.selectionClick();
                     },
                   ),
+                  onPageChanged: (page) {
+                    if (page == null) return;
+                    setState(() => _currentPage = page);
+                    if (widget.trackProgress) {
+                      bookProvider.updateProgress(page);
+                    }
+                    _playPageSound();
+                    HapticFeedback.selectionClick();
+                  },
                 ),
               ),
             ),
@@ -552,11 +547,17 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       ),
                       IconButton(
                         icon: Icon(Icons.zoom_out, color: fg),
-                        onPressed: () => _zoomBy(-0.2),
+                        onPressed: () {
+                          _controller.zoomDown();
+                          setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 3.0));
+                        },
                       ),
                       IconButton(
                         icon: Icon(Icons.zoom_in, color: fg),
-                        onPressed: () => _zoomBy(0.2),
+                        onPressed: () {
+                          _controller.zoomUp();
+                          setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 3.0));
+                        },
                       ),
                     ],
                   ),
