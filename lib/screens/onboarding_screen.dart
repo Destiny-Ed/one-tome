@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/book_provider.dart';
 import '../providers/notification_provider.dart';
+import '../theme/app_theme.dart';
 import 'main_shell.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -105,20 +106,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
     final notificationProvider = context.watch<NotificationProvider>();
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         body: Stack(
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 600),
+              duration: const Duration(milliseconds: 700),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    theme.colorScheme.primary.withOpacity(0.12),
-                    theme.colorScheme.surface,
-                    theme.colorScheme.surface,
+                    AppTheme.primary.withOpacity(0.08),
+                    AppTheme.surfaceSoft,
+                    Colors.white,
                   ],
                 ),
               ),
@@ -134,7 +135,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                       itemBuilder: (context, i) {
                         final page = _pages[i];
                         return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          padding: const EdgeInsets.symmetric(horizontal: 36),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -143,64 +144,66 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                                 child: FadeTransition(
                                   opacity: _fadeAnim,
                                   child: Container(
-                                    width: 140,
-                                    height: 140,
+                                    width: 150,
+                                    height: 150,
                                     decoration: BoxDecoration(
-                                      color: theme.colorScheme.primary.withOpacity(0.1),
+                                      color: AppTheme.primary.withOpacity(0.12),
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
                                       page['icon'] as IconData,
-                                      size: 72,
-                                      color: theme.colorScheme.primary,
+                                      size: 76,
+                                      color: AppTheme.primary,
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 56),
+                              const SizedBox(height: 52),
                               FadeTransition(
                                 opacity: _fadeAnim,
                                 child: Text(
                                   page['title'] as String,
                                   style: theme.textTheme.headlineLarge?.copyWith(
                                     fontWeight: FontWeight.w700,
-                                    height: 1.1,
-                                    letterSpacing: -0.5,
+                                    height: 1.08,
+                                    letterSpacing: -0.8,
+                                    color: const Color(0xFF1A2332),
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 18),
                               FadeTransition(
                                 opacity: _fadeAnim,
                                 child: Text(
                                   page['subtitle'] as String,
                                   style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: theme.colorScheme.onSurface.withOpacity(0.65),
-                                    height: 1.55,
+                                    color: const Color(0xFF5A6A7A),
+                                    height: 1.5,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
                               ),
                               if (i == 2) ...[
-                                const SizedBox(height: 48),
-                                Text('$_dailyGoal pages / day', style: theme.textTheme.titleLarge),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 44),
+                                Text('$_dailyGoal pages / day', style: theme.textTheme.titleLarge?.copyWith(color: AppTheme.primary)),
+                                const SizedBox(height: 4),
                                 Slider(
                                   value: _dailyGoal.toDouble(),
                                   min: 5,
                                   max: 100,
                                   divisions: 19,
-                                  label: '$_dailyGoal',
+                                  activeColor: AppTheme.primary,
                                   onChanged: (v) => setState(() => _dailyGoal = v.round()),
                                 ),
                               ],
                               if (i == 3) ...[
-                                const SizedBox(height: 40),
+                                const SizedBox(height: 36),
                                 SwitchListTile(
                                   contentPadding: EdgeInsets.zero,
                                   title: const Text('Daily reminder'),
                                   value: notificationProvider.enabled,
+                                  activeColor: AppTheme.primary,
                                   onChanged: notificationProvider.setEnabled,
                                 ),
                                 if (notificationProvider.enabled)
@@ -221,7 +224,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(32, 0, 32, 32),
+                    padding: const EdgeInsets.fromLTRB(28, 0, 28, 28),
                     child: Column(
                       children: [
                         Row(
@@ -235,9 +238,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                               height: 6,
                               width: _currentPage == i ? 28 : 6,
                               decoration: BoxDecoration(
-                                color: _currentPage == i
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.primary.withOpacity(0.25),
+                                color: _currentPage == i ? AppTheme.primary : AppTheme.primary.withOpacity(0.25),
                                 borderRadius: BorderRadius.circular(3),
                               ),
                             ),
@@ -247,6 +248,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                         FilledButton(
                           onPressed: _next,
                           style: FilledButton.styleFrom(
+                            backgroundColor: AppTheme.primary,
                             minimumSize: const Size.fromHeight(56),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             elevation: 0,
