@@ -12,6 +12,7 @@ import '../providers/reader_preferences_provider.dart';
 import '../providers/highlight_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bottom_sheet.dart';
+import 'celebration_screen.dart';
 
 class ReaderScreen extends StatefulWidget {
   final Book? bookOverride;
@@ -115,6 +116,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final provider = context.read<BookProvider>();
     await provider.markDoneForToday();
     if (mounted) Navigator.of(context).pop();
+  }
+
+  Future<void> _onBookCompleted(String title) async {
+    if (!mounted) return;
+    await Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => CelebrationScreen(bookTitle: title)),
+    );
   }
 
   Future<void> _checkAndShowGoalDialog() async {
@@ -492,11 +500,16 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     }
                   },
                 ),
-                onPageChanged: (page) {
+                onPageChanged: (page) async {
                   if (page == null) return;
                   setState(() => _currentPage = page);
                   if (widget.trackProgress) {
-                    bookProvider.updateProgress(page);
+                    final title = _book.title;
+                    await bookProvider.updateProgress(page);
+                    if (mounted && bookProvider.activeBook == null && page >= _book.totalPages) {
+                      await _onBookCompleted(title);
+                      return;
+                    }
                   }
                   _playPageSound();
                   HapticFeedback.selectionClick();
