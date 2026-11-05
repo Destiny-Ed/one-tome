@@ -1,9 +1,13 @@
 import 'dart:convert';
 
+enum BookType { pdf, physical }
+
 class Book {
   final String id;
   final String title;
-  String filePath;
+  final BookType type;
+  final String? author;
+  String filePath; // empty for physical books
   String? thumbnailPath;
   final int totalPages;
   int currentPage;
@@ -16,6 +20,8 @@ class Book {
   Book({
     required this.id,
     required this.title,
+    this.type = BookType.pdf,
+    this.author,
     required this.filePath,
     this.thumbnailPath,
     required this.totalPages,
@@ -27,6 +33,9 @@ class Book {
     DateTime? addedAt,
   }) : addedAt = addedAt ?? DateTime.now();
 
+  bool get isPhysical => type == BookType.physical;
+  bool get isPdf => type == BookType.pdf;
+
   bool get isDoneForToday {
     if (doneForTodayUntil == null) return false;
     return DateTime.now().isBefore(doneForTodayUntil!);
@@ -37,6 +46,8 @@ class Book {
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
+        'type': type.name,
+        'author': author,
         'filePath': filePath,
         'thumbnailPath': thumbnailPath,
         'totalPages': totalPages,
@@ -51,7 +62,9 @@ class Book {
   factory Book.fromJson(Map<String, dynamic> json) => Book(
         id: json['id'],
         title: json['title'],
-        filePath: json['filePath'],
+        type: json['type'] == 'physical' ? BookType.physical : BookType.pdf,
+        author: json['author'],
+        filePath: json['filePath'] ?? '',
         thumbnailPath: json['thumbnailPath'],
         totalPages: json['totalPages'] ?? 0,
         currentPage: json['currentPage'] ?? 0,
