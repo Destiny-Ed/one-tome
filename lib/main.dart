@@ -34,7 +34,6 @@ class OneTomeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    final bookProvider = context.watch<BookProvider>();
 
     return MaterialApp(
       title: 'OneTome',
@@ -42,9 +41,7 @@ class OneTomeApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeProvider.themeMode,
-      home: bookProvider.hasCompletedOnboarding
-          ? const MainShell()
-          : const SplashScreen(),
+      home: const SplashScreen(),
     );
   }
 }
