@@ -7,6 +7,7 @@ import '../providers/book_provider.dart';
 import '../theme/app_theme.dart';
 import 'import_screen.dart';
 import 'reader_screen.dart';
+import 'physical_reader_screen.dart';
 import 'finished_book_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -107,7 +108,7 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _ActiveBookView extends StatelessWidget {
-  final dynamic book;
+  final Book book;
   final int dailyGoal;
   const _ActiveBookView({required this.book, required this.dailyGoal});
 
@@ -128,7 +129,7 @@ class _ActiveBookView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLocked = book.isDoneForToday;
-    final thumb = book.thumbnailPath as String?;
+    final thumb = book.thumbnailPath;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -155,11 +156,18 @@ class _ActiveBookView extends StatelessWidget {
                     color: AppTheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.auto_stories, color: AppTheme.primary),
+                  child: Icon(book.isPhysical ? Icons.menu_book : Icons.auto_stories, color: AppTheme.primary),
                 ),
               const SizedBox(width: 14),
               Expanded(
-                child: Text(book.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary(context))),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(book.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary(context))),
+                    if (book.author != null)
+                      Text(book.author!, style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 13)),
+                  ],
+                ),
               ),
             ],
           ),
@@ -217,7 +225,12 @@ class _ActiveBookView extends StatelessWidget {
           FilledButton.icon(
             onPressed: isLocked
                 ? null
-                : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReaderScreen())),
+                : () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => book.isPhysical ? const PhysicalReaderScreen() : const ReaderScreen(),
+                      ),
+                    ),
             icon: Icon(isLocked ? Icons.lock : Icons.play_arrow),
             label: Text(isLocked ? 'Locked until tomorrow' : 'Continue reading'),
             style: FilledButton.styleFrom(
@@ -315,7 +328,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 24),
           Text('One book. Finish it.', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppTheme.textPrimary(context))),
           const SizedBox(height: 8),
-          Text('Import a PDF to begin your first tome.', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textSecondary(context))),
+          Text('Import a PDF or track a physical book.', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textSecondary(context))),
           const SizedBox(height: 28),
           FilledButton.icon(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportScreen())),
