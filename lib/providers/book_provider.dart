@@ -140,13 +140,20 @@ class BookProvider extends ChangeNotifier {
       final page = doc.pages.first;
       final thumbWidth = 200;
       final thumbHeight = (page.height / page.width * thumbWidth).round();
-      final image = await page.renderForDisplay(
+      final pdfImage = await page.render(
         width: thumbWidth,
         height: thumbHeight,
+        fullWidth: thumbWidth.toDouble(),
+        fullHeight: thumbHeight.toDouble(),
         backgroundColor: 0xffffffff,
       );
+      if (pdfImage == null) {
+        await doc.dispose();
+        return null;
+      }
+      final image = await pdfImage.createImage();
+      pdfImage.dispose();
       await doc.dispose();
-      if (image == null) return null;
 
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       image.dispose();

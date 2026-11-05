@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -37,11 +36,19 @@ class _ImportScreenState extends State<ImportScreen> {
         ui.Image? preview;
         if (doc.pages.isNotEmpty) {
           final page = doc.pages.first;
-          preview = await page.renderForDisplay(
-            width: 160,
-            height: (page.height / page.width * 160).round(),
+          final w = 160;
+          final h = (page.height / page.width * w).round();
+          final pdfImage = await page.render(
+            width: w,
+            height: h,
+            fullWidth: w.toDouble(),
+            fullHeight: h.toDouble(),
             backgroundColor: 0xffffffff,
           );
+          if (pdfImage != null) {
+            preview = await pdfImage.createImage();
+            pdfImage.dispose();
+          }
         }
         await doc.dispose();
         if (mounted) {
