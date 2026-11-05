@@ -73,8 +73,9 @@ class SettingsScreen extends StatelessWidget {
       backgroundColor: AppTheme.softBg,
       body: CustomScrollView(
         slivers: [
-          const SliverAppBar.large(
+          const SliverAppBar(
             title: Text('Settings'),
+            centerTitle: false,
             pinned: true,
             backgroundColor: AppTheme.softBg,
           ),
@@ -82,27 +83,27 @@ class SettingsScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                _Section(
-                  title: 'Appearance',
-                  children: [
-                    _ThemeOption(
-                      label: 'System',
-                      selected: themeProvider.themeMode == ThemeMode.system,
-                      onTap: () => themeProvider.setThemeMode(ThemeMode.system),
-                    ),
-                    _ThemeOption(
-                      label: 'Light',
-                      selected: themeProvider.themeMode == ThemeMode.light,
-                      onTap: () => themeProvider.setThemeMode(ThemeMode.light),
-                    ),
-                    _ThemeOption(
-                      label: 'Dark',
-                      selected: themeProvider.themeMode == ThemeMode.dark,
-                      onTap: () => themeProvider.setThemeMode(ThemeMode.dark),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
+                // _Section(
+                //   title: 'Appearance',
+                //   children: [
+                //     _ThemeOption(
+                //       label: 'System',
+                //       selected: themeProvider.themeMode == ThemeMode.system,
+                //       onTap: () => themeProvider.setThemeMode(ThemeMode.system),
+                //     ),
+                //     _ThemeOption(
+                //       label: 'Light',
+                //       selected: themeProvider.themeMode == ThemeMode.light,
+                //       onTap: () => themeProvider.setThemeMode(ThemeMode.light),
+                //     ),
+                //     _ThemeOption(
+                //       label: 'Dark',
+                //       selected: themeProvider.themeMode == ThemeMode.dark,
+                //       onTap: () => themeProvider.setThemeMode(ThemeMode.dark),
+                //     ),
+                //   ],
+                // ),
+                // const SizedBox(height: 20),
                 _Section(
                   title: 'Reading',
                   children: [

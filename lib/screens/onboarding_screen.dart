@@ -137,18 +137,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                           ),
                           if (i == 2) ...[
-                            const SizedBox(height: 40),
-                            Text(
-                              '$_dailyGoal pages / day',
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.navy,
+                            const SizedBox(height: 48),
+                            Center(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    '$_dailyGoal',
+                                    style: const TextStyle(
+                                      fontSize: 72,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.navy,
+                                      height: 1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text('pages / day', style: TextStyle(fontSize: 18, color: AppTheme.textMuted)),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            const Text('daily goal', style: TextStyle(color: AppTheme.textMuted)),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 24),
                             Slider(
                               value: _dailyGoal.toDouble(),
                               min: 5,
@@ -158,26 +165,61 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               inactiveColor: Colors.grey.shade200,
                               onChanged: (v) => setState(() => _dailyGoal = v.round()),
                             ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Most people finish a book in 2–4 weeks at this pace.',
+                              style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
+                            ),
                           ],
                           if (i == 3) ...[
-                            const SizedBox(height: 32),
-                            SwitchListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: const Text('Daily reminder', style: TextStyle(color: AppTheme.navy)),
-                              value: notificationProvider.enabled,
-                              activeColor: AppTheme.primary,
-                              onChanged: notificationProvider.setEnabled,
-                            ),
-                            if (notificationProvider.enabled)
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: const Text('Reminder time'),
-                                trailing: Text(notificationProvider.time.format(context)),
-                                onTap: () async {
-                                  final t = await showTimePicker(context: context, initialTime: notificationProvider.time);
-                                  if (t != null) notificationProvider.setTime(t);
-                                },
+                            const SizedBox(height: 48),
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: AppTheme.softBg,
+                                borderRadius: BorderRadius.circular(16),
                               ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Expanded(
+                                        child: Text('Daily reminder', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.navy, fontSize: 16)),
+                                      ),
+                                      Switch(
+                                        value: notificationProvider.enabled,
+                                        activeColor: AppTheme.primary,
+                                        onChanged: notificationProvider.setEnabled,
+                                      ),
+                                    ],
+                                  ),
+                                  if (notificationProvider.enabled) ...[
+                                    const SizedBox(height: 12),
+                                    const Divider(height: 1),
+                                    const SizedBox(height: 12),
+                                    InkWell(
+                                      onTap: () async {
+                                        final t = await showTimePicker(context: context, initialTime: notificationProvider.time);
+                                        if (t != null) notificationProvider.setTime(t);
+                                      },
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.access_time, color: AppTheme.primary, size: 20),
+                                          const SizedBox(width: 12),
+                                          const Expanded(child: Text('Reminder time', style: TextStyle(color: AppTheme.navy))),
+                                          Text(
+                                            notificationProvider.time.format(context),
+                                            style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.primary),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          const Icon(Icons.chevron_right, color: AppTheme.textMuted, size: 18),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
                           ],
                           const Spacer(flex: 3),
                         ],
