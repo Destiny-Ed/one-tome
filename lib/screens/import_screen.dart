@@ -30,12 +30,12 @@ class _ImportScreenState extends State<ImportScreen> {
   String? _coverPath;
 
   Future<void> _pickPdf() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
-    if (result != null && result.files.single.path != null) {
-      final path = result.files.single.path!;
+    final result = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    if (result.isNotEmpty && result.single.path != null) {
+      final path = result.single.path!;
       setState(() {
         _path = path;
-        _titleController.text = result.files.single.name.replaceAll('.pdf', '');
+        _titleController.text = result.single.name.replaceAll('.pdf', '');
         _detecting = true;
         _preview = null;
       });
@@ -45,7 +45,7 @@ class _ImportScreenState extends State<ImportScreen> {
         ui.Image? preview;
         if (doc.pages.isNotEmpty) {
           final page = doc.pages.first;
-          final w = 160;
+          const w = 160;
           final h = (page.height / page.width * w).round();
           final pdfImage = await page.render(
             width: w,
@@ -79,9 +79,9 @@ class _ImportScreenState extends State<ImportScreen> {
   }
 
   Future<void> _pickCover() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image);
-    if (result != null && result.files.single.path != null) {
-      setState(() => _coverPath = result.files.single.path);
+    final result = await FilePicker.pickFiles(type: FileType.image);
+    if (result.isNotEmpty && result.single.path != null) {
+      setState(() => _coverPath = result.single.path);
     }
   }
 

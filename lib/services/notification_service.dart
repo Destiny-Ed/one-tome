@@ -18,7 +18,7 @@ class NotificationService {
       requestSoundPermission: false,
     );
     await _plugin
-        .initialize(const InitializationSettings(android: android, iOS: ios));
+        .initialize(settings: const InitializationSettings(android: android, iOS: ios));
     _initialized = true;
   }
 
@@ -54,19 +54,19 @@ class NotificationService {
 
     await _plugin.cancelAll();
     await _plugin.zonedSchedule(
-      0,
-      'OneTome',
-      'Time to continue your book',
-      _nextInstanceOf(time),
-      const NotificationDetails(
+      id: 0,
+      title: 'OneTome',
+      body: 'Time to continue your book',
+      scheduledDate: _nextInstanceOf(time),
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails('daily', 'Daily reminder',
             importance: Importance.defaultImportance),
         iOS: DarwinNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      // uiLocalNotificationDateInterpretation:
+      //     UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 

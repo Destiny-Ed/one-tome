@@ -37,10 +37,26 @@ class _ReaderScreenState extends State<ReaderScreen> {
   double _zoom = 1.0;
 
   static const _nightShiftMatrix = <double>[
-    1.15, 0.05, 0.0, 0, 25,
-    0.0, 0.82, 0.0, 0, 8,
-    0.0, 0.0, 0.5, 0, 0,
-    0, 0, 0, 1, 0,
+    1.15,
+    0.05,
+    0.0,
+    0,
+    25,
+    0.0,
+    0.82,
+    0.0,
+    0,
+    8,
+    0.0,
+    0.0,
+    0.5,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
   ];
 
   @override
@@ -58,14 +74,16 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 
   Future<void> _replacePdf() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
-    if (result == null || result.files.single.path == null) return;
+    final result = await FilePicker.pickFiles(
+        type: FileType.custom, allowedExtensions: ['pdf']);
+    if (result.isEmpty || result.single.path == null) return;
     final provider = context.read<BookProvider>();
     bool ok = false;
     if (widget.bookOverride != null) {
-      ok = await provider.replacePdfForHistoryBook(_book.id, result.files.single.path!);
+      ok = await provider.replacePdfForHistoryBook(
+          _book.id, result.single.path!);
     } else {
-      ok = await provider.replacePdfForActiveBook(result.files.single.path!);
+      ok = await provider.replacePdfForActiveBook(result.single.path!);
     }
     if (ok && mounted) {
       _book = widget.bookOverride != null
@@ -143,7 +161,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
       context: context,
       title: 'Daily goal reached',
       subtitle: 'You\'ve hit your reading target for today.',
-      child: const Text('You can keep going, or mark this book done for today and continue tomorrow.'),
+      child: const Text(
+          'You can keep going, or mark this book done for today and continue tomorrow.'),
       actions: [
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
@@ -195,7 +214,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
             ),
             child: Text(
               _selectedText!,
-              style: TextStyle(fontStyle: FontStyle.italic, color: AppTheme.textPrimary(context)),
+              style: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  color: AppTheme.textPrimary(context)),
             ),
           ),
           const SizedBox(height: 16),
@@ -216,11 +237,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   bookId: _book.id,
                   page: _currentPage,
                   text: _selectedText!.trim(),
-                  note: noteController.text.trim().isEmpty ? null : noteController.text.trim(),
+                  note: noteController.text.trim().isEmpty
+                      ? null
+                      : noteController.text.trim(),
                 );
             if (mounted) Navigator.pop(context);
             HapticFeedback.lightImpact();
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Highlight saved')));
+            ScaffoldMessenger.of(context)
+                .showSnackBar(const SnackBar(content: Text('Highlight saved')));
           },
           child: const Text('Save highlight'),
         ),
@@ -241,9 +265,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
           children: [
             Row(
               children: [
-                Icon(_nightMode ? Icons.nightlight_round : Icons.light_mode, color: AppTheme.primary, size: 20),
+                Icon(_nightMode ? Icons.nightlight_round : Icons.light_mode,
+                    color: AppTheme.primary, size: 20),
                 const SizedBox(width: 12),
-                Expanded(child: Text(_nightMode ? 'Night shift' : 'Light mode', style: TextStyle(color: AppTheme.textPrimary(ctx)))),
+                Expanded(
+                    child: Text(_nightMode ? 'Night shift' : 'Light mode',
+                        style: TextStyle(color: AppTheme.textPrimary(ctx)))),
                 Switch(
                   value: _nightMode,
                   activeColor: AppTheme.primary,
@@ -295,7 +322,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(prefs.soundEnabled ? Icons.volume_up : Icons.volume_off, color: AppTheme.primary, size: 20),
+                Icon(prefs.soundEnabled ? Icons.volume_up : Icons.volume_off,
+                    color: AppTheme.primary, size: 20),
                 const SizedBox(width: 12),
                 const Expanded(child: Text('Page turn sound')),
                 Switch(
@@ -326,12 +354,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
         children: [
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: Icon(prefs.layout == ReadingLayout.vertical ? Icons.swap_vert : Icons.swap_horiz, color: AppTheme.primary),
+            leading: Icon(
+                prefs.layout == ReadingLayout.vertical
+                    ? Icons.swap_vert
+                    : Icons.swap_horiz,
+                color: AppTheme.primary),
             title: const Text('Layout'),
-            subtitle: Text(prefs.layout == ReadingLayout.vertical ? 'Vertical (swipe up/down)' : 'Horizontal (swipe left/right)'),
+            subtitle: Text(prefs.layout == ReadingLayout.vertical
+                ? 'Vertical (swipe up/down)'
+                : 'Horizontal (swipe left/right)'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              final next = prefs.layout == ReadingLayout.vertical ? ReadingLayout.horizontal : ReadingLayout.vertical;
+              final next = prefs.layout == ReadingLayout.vertical
+                  ? ReadingLayout.horizontal
+                  : ReadingLayout.vertical;
               prefs.setLayout(next);
               _controller.invalidate();
               Navigator.pop(context);
@@ -353,7 +389,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.done_all, color: AppTheme.primary),
               title: const Text('Done for today'),
-              subtitle: const Text('Stop tracking for today and continue tomorrow'),
+              subtitle:
+                  const Text('Stop tracking for today and continue tomorrow'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () async {
                 Navigator.pop(context);
@@ -370,7 +407,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
     AppBottomSheet.show(
       context: context,
       title: 'Notes',
-      subtitle: highlights.isEmpty ? 'No notes yet' : '${highlights.length} saved',
+      subtitle:
+          highlights.isEmpty ? 'No notes yet' : '${highlights.length} saved',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -383,10 +421,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
             ...highlights.map((h) => ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(h.text),
-                  subtitle: Text('Page ${h.page}${h.note != null ? '\n${h.note}' : ''}'),
+                  subtitle: Text(
+                      'Page ${h.page}${h.note != null ? '\n${h.note}' : ''}'),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
-                    onPressed: () => context.read<HighlightProvider>().removeHighlight(h.id),
+                    onPressed: () =>
+                        context.read<HighlightProvider>().removeHighlight(h.id),
                   ),
                 )),
         ],
@@ -396,9 +436,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
           : [
               OutlinedButton(
                 onPressed: () {
-                  final text = context.read<HighlightProvider>().exportForBook(_book.id, _book.title);
+                  final text = context
+                      .read<HighlightProvider>()
+                      .exportForBook(_book.id, _book.title);
                   Clipboard.setData(ClipboardData(text: text));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notes copied')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Notes copied')));
                 },
                 child: const Text('Export notes'),
               ),
@@ -406,10 +449,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
     );
   }
 
-  PdfPageLayout _buildLayout(List<PdfPage> pages, PdfViewerParams params, ReadingLayout layout) {
+  PdfPageLayout _buildLayout(
+      List<PdfPage> pages, PdfViewerParams params, ReadingLayout layout) {
     final pageLayouts = <Rect>[];
     if (layout == ReadingLayout.horizontal) {
-      final maxHeight = pages.fold<double>(0, (prev, page) => math.max(prev, page.height));
+      final maxHeight =
+          pages.fold<double>(0, (prev, page) => math.max(prev, page.height));
       double x = params.margin;
       for (final page in pages) {
         final y = (maxHeight - page.height) / 2 + params.margin;
@@ -421,7 +466,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
         documentSize: Size(x, maxHeight + params.margin * 2),
       );
     } else {
-      final maxWidth = pages.fold<double>(0, (prev, page) => math.max(prev, page.width));
+      final maxWidth =
+          pages.fold<double>(0, (prev, page) => math.max(prev, page.width));
       double y = params.margin;
       for (final page in pages) {
         final x = (maxWidth - page.width) / 2 + params.margin;
@@ -448,9 +494,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final bookProvider = context.watch<BookProvider>();
     final readerPrefs = context.watch<ReaderPreferencesProvider>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = _nightMode ? const Color(0xFF1A1208) : AppTheme.background(context);
-    final appBarBg = _nightMode ? const Color(0xFF1A1208) : AppTheme.surface(context);
-    final fg = _nightMode ? const Color(0xFFFFE8C8) : AppTheme.textPrimary(context);
+    final bg =
+        _nightMode ? const Color(0xFF1A1208) : AppTheme.background(context);
+    final appBarBg =
+        _nightMode ? const Color(0xFF1A1208) : AppTheme.surface(context);
+    final fg =
+        _nightMode ? const Color(0xFFFFE8C8) : AppTheme.textPrimary(context);
     final onLastPage = _currentPage >= _book.totalPages;
 
     if (!_fileExists) {
@@ -505,7 +554,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 controller: _controller,
                 initialPageNumber: _currentPage,
                 params: PdfViewerParams(
-                  layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
+                  layoutPages: (pages, params) =>
+                      _buildLayout(pages, params, readerPrefs.layout),
                   textSelectionParams: PdfTextSelectionParams(
                     onTextSelectionChange: (selection) async {
                       if (selection.isCopyAllowed) {
@@ -529,7 +579,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
               decoration: BoxDecoration(
                 color: appBarBg,
-                border: Border(top: BorderSide(color: _nightMode ? const Color(0xFF3D2E1A) : (isDark ? Colors.grey.shade800 : Colors.grey.shade200))),
+                border: Border(
+                    top: BorderSide(
+                        color: _nightMode
+                            ? const Color(0xFF3D2E1A)
+                            : (isDark
+                                ? Colors.grey.shade800
+                                : Colors.grey.shade200))),
               ),
               child: SafeArea(
                 top: false,
@@ -553,25 +609,33 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       children: [
                         IconButton(
                           icon: Icon(Icons.chevron_left, color: fg),
-                          onPressed: _currentPage > 1 ? () => _goToPage(_currentPage - 1) : null,
+                          onPressed: _currentPage > 1
+                              ? () => _goToPage(_currentPage - 1)
+                              : null,
                         ),
-                        Text('$_currentPage / ${_book.totalPages}', style: TextStyle(color: fg, fontWeight: FontWeight.w600)),
+                        Text('$_currentPage / ${_book.totalPages}',
+                            style: TextStyle(
+                                color: fg, fontWeight: FontWeight.w600)),
                         IconButton(
                           icon: Icon(Icons.chevron_right, color: fg),
-                          onPressed: _currentPage < _book.totalPages ? () => _goToPage(_currentPage + 1) : null,
+                          onPressed: _currentPage < _book.totalPages
+                              ? () => _goToPage(_currentPage + 1)
+                              : null,
                         ),
                         IconButton(
                           icon: Icon(Icons.zoom_out, color: fg),
                           onPressed: () {
                             _controller.zoomDown();
-                            setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 3.0));
+                            setState(
+                                () => _zoom = (_zoom - 0.2).clamp(0.6, 3.0));
                           },
                         ),
                         IconButton(
                           icon: Icon(Icons.zoom_in, color: fg),
                           onPressed: () {
                             _controller.zoomUp();
-                            setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 3.0));
+                            setState(
+                                () => _zoom = (_zoom + 0.2).clamp(0.6, 3.0));
                           },
                         ),
                       ],
@@ -585,7 +649,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
     );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: _nightMode ? SystemUiOverlayStyle.light : (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark),
+      value: _nightMode
+          ? SystemUiOverlayStyle.light
+          : (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark),
       child: Scaffold(
         backgroundColor: bg,
         appBar: AppBar(
@@ -600,7 +666,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 onPressed: _createHighlightFromSelection,
               ),
             IconButton(
-              icon: Icon(_nightMode ? Icons.nightlight_round : Icons.light_mode),
+              icon:
+                  Icon(_nightMode ? Icons.nightlight_round : Icons.light_mode),
               tooltip: 'Night shift',
               onPressed: () => setState(() => _nightMode = !_nightMode),
             ),
