@@ -7,6 +7,10 @@ class AppTheme {
   static const softBg = Color(0xFFF0F6FB);
   static const textMuted = Color(0xFF5A6A7A);
 
+  static const darkBg = Color(0xFF0F1419);
+  static const darkSurface = Color(0xFF1A2332);
+  static const darkMuted = Color(0xFF8A9BB0);
+
   static ThemeData get light => ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
@@ -27,23 +31,10 @@ class AppTheme {
             elevation: 0,
           ),
         ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: navy,
-            minimumSize: const Size.fromHeight(48),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            side: BorderSide(color: Colors.grey.shade300),
-          ),
-        ),
-        cardTheme: CardThemeData(
+        cardTheme: CardTheme(
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           color: Colors.white,
-        ),
-        textTheme: const TextTheme(
-          headlineLarge: TextStyle(color: navy, fontWeight: FontWeight.w700, letterSpacing: -0.5),
-          titleLarge: TextStyle(color: navy, fontWeight: FontWeight.w600),
-          bodyLarge: TextStyle(color: textMuted, height: 1.5),
         ),
       );
 
@@ -51,7 +42,13 @@ class AppTheme {
         useMaterial3: true,
         brightness: Brightness.dark,
         colorSchemeSeed: accent,
-        scaffoldBackgroundColor: const Color(0xFF0F1419),
+        scaffoldBackgroundColor: darkBg,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          foregroundColor: Colors.white,
+        ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
             backgroundColor: accent,
@@ -61,5 +58,22 @@ class AppTheme {
             elevation: 0,
           ),
         ),
+        cardTheme: CardTheme(
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          color: darkSurface,
+        ),
       );
+
+  static Color surface(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkSurface : Colors.white;
+
+  static Color background(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkBg : softBg;
+
+  static Color textPrimary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? Colors.white : navy;
+
+  static Color textSecondary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? darkMuted : textMuted;
 }

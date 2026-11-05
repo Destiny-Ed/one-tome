@@ -4,6 +4,7 @@ class Book {
   final String id;
   final String title;
   String filePath;
+  String? thumbnailPath;
   final int totalPages;
   int currentPage;
   bool isCompleted;
@@ -16,6 +17,7 @@ class Book {
     required this.id,
     required this.title,
     required this.filePath,
+    this.thumbnailPath,
     required this.totalPages,
     this.currentPage = 0,
     this.isCompleted = false,
@@ -36,6 +38,7 @@ class Book {
         'id': id,
         'title': title,
         'filePath': filePath,
+        'thumbnailPath': thumbnailPath,
         'totalPages': totalPages,
         'currentPage': currentPage,
         'isCompleted': isCompleted,
@@ -49,6 +52,7 @@ class Book {
         id: json['id'],
         title: json['title'],
         filePath: json['filePath'],
+        thumbnailPath: json['thumbnailPath'],
         totalPages: json['totalPages'] ?? 0,
         currentPage: json['currentPage'] ?? 0,
         isCompleted: json['isCompleted'] ?? false,
