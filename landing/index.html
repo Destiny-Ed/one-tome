@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OneTome — One book. Finish it.</title>
   <meta name="description" content="OneTome helps you finish one book at a time — PDF or physical. Daily goals, streaks, notes. Local-first." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M30 35h40v40H30z' fill='white'/><path d='M48 28l18 18-18 18z' fill='%2300C853'/></svg>" />
+  <link rel="icon" href="logo.png" type="image/png" />
   <style>
     :root {
       --primary: #0066FF;
@@ -40,12 +40,11 @@
     .logo {
       display: flex; align-items: center; gap: 10px;
       font-weight: 800; font-size: 1.3rem; color: var(--navy); letter-spacing: -0.3px;
+      text-decoration: none;
     }
-    .logo-mark {
+    .logo img {
       width: 38px; height: 38px; border-radius: 12px;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      display: flex; align-items: center; justify-content: center;
-      color: white; font-weight: 800; font-size: 1.1rem;
+      object-fit: cover;
     }
     nav a { margin-left: 22px; color: var(--text); font-weight: 500; font-size: 0.95rem; }
     nav a:hover { color: var(--primary); }
@@ -109,10 +108,7 @@
     .section .lead {
       color: var(--text-secondary); margin-bottom: 36px; max-width: 540px; font-size: 1.05rem;
     }
-    /* Feature carousel */
-    .carousel-wrap {
-      position: relative;
-    }
+    .carousel-wrap { position: relative; }
     .carousel {
       display: flex; gap: 16px;
       overflow-x: auto; scroll-snap-type: x mandatory;
@@ -147,7 +143,6 @@
       transition: all 0.15s ease;
     }
     .carousel-nav button:hover { border-color: var(--primary); color: var(--primary); }
-    /* Reviews marquee */
     .marquee-wrap {
       overflow: hidden;
       mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
@@ -172,7 +167,6 @@
       from { transform: translateX(0); }
       to { transform: translateX(-50%); }
     }
-    /* Steps */
     .steps {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -189,7 +183,6 @@
     }
     .step h3 { margin-bottom: 6px; }
     .step p { color: var(--text-secondary); font-size: 0.95rem; }
-    /* FAQ */
     .faq details {
       background: var(--surface);
       border-radius: 14px;
@@ -226,10 +219,10 @@
 <body>
   <header>
     <div class="nav">
-      <div class="logo">
-        <div class="logo-mark">1</div>
+      <a class="logo" href="index.html">
+        <img src="logo.png" alt="OneTome" />
         OneTome
-      </div>
+      </a>
       <nav>
         <a href="#features">Features</a>
         <a href="#how">How it works</a>
@@ -344,7 +337,6 @@
           <p>“Finally an app that treats finishing as the goal. Simple, focused, and it actually works.”</p>
           <div class="reviewer">— Ngozi, Enugu</div>
         </div>
-        <!-- duplicate for seamless loop -->
         <div class="review">
           <div class="stars">★★★★★</div>
           <p>“I had four PDFs open and zero finished. OneTome forced me to pick one. Finished it in three weeks.”</p>
