@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OneTome — One book. Finish it.</title>
+  <meta name="description" content="OneTome is a local-first PDF reader that enforces one book at a time. Finish what you start." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M30 35h40v40H30z' fill='white'/><path d='M48 28l18 18-18 18z' fill='%2300C853'/></svg>" />
+  <style>
+    :root {
+      --primary: #007AFF;
+      --accent: #00C853;
+      --navy: #0A1628;
+      --bg: #F7F8FA;
+      --surface: #FFFFFF;
+      --text: #0A1628;
+      --text-secondary: #5C6B7A;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(247,248,250,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .nav {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 700; font-size: 1.25rem; color: var(--navy);
+    }
+    .logo-mark {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 800;
+    }
+    nav a { margin-left: 24px; color: var(--text); font-weight: 500; }
+    .btn {
+      display: inline-block;
+      background: var(--navy); color: white;
+      padding: 14px 28px; border-radius: 12px;
+      font-weight: 600; text-decoration: none;
+    }
+    .btn:hover { text-decoration: none; opacity: 0.92; }
+    .btn-outline {
+      background: transparent; color: var(--navy);
+      border: 1.5px solid var(--navy);
+    }
+    .hero {
+      max-width: 1100px; margin: 0 auto;
+      padding: 80px 24px 60px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.2rem);
+      font-weight: 800; letter-spacing: -1.5px;
+      line-height: 1.05; color: var(--navy);
+    }
+    .hero h1 span { color: var(--primary); }
+    .hero p {
+      margin: 20px auto 32px;
+      max-width: 520px; font-size: 1.2rem;
+      color: var(--text-secondary);
+    }
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .section {
+      max-width: 1100px; margin: 0 auto;
+      padding: 60px 24px;
+    }
+    .section h2 {
+      font-size: 2rem; font-weight: 700; margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    .section .lead {
+      color: var(--text-secondary); margin-bottom: 40px; max-width: 560px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: 0 4px 24px rgba(10,22,40,0.04);
+    }
+    .card h3 { font-size: 1.15rem; margin-bottom: 8px; }
+    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+    .icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), #5AC8FA);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 1.3rem; margin-bottom: 16px;
+    }
+    footer {
+      border-top: 1px solid rgba(0,0,0,0.06);
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    footer a { margin: 0 12px; }
+    @media (max-width: 600px) {
+      nav a { margin-left: 16px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <div class="logo">
+        <div class="logo-mark">1</div>
+        OneTome
+      </div>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>One book.<br><span>Finish it.</span></h1>
+    <p>A local-first PDF reader that enforces one book at a time. No more unfinished piles. Just progress that feels real.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#download">Get OneTome</a>
+      <a class="btn btn-outline" href="#features">See how it works</a>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <h2>Built for finishing</h2>
+    <p class="lead">Everything is designed to keep you in one book until the last page.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">1</div>
+        <h3>One book rule</h3>
+        <p>Only one active book. You can’t start a second until the first is finished.</p>
+      </div>
+      <div class="card">
+        <div class="icon">✓</div>
+        <h3>Daily goal</h3>
+        <p>Set pages per day. Mark “done for today” and pick up exactly where you left off.</p>
+      </div>
+      <div class="card">
+        <div class="icon">★</div>
+        <h3>Streaks & progress</h3>
+        <p>Track your streak and see real progress instead of endless bookmarks.</p>
+      </div>
+      <div class="card">
+        <div class="icon">✎</div>
+        <h3>Highlights & notes</h3>
+        <p>Select text, highlight, and export your notes when you’re done.</p>
+      </div>
+      <div class="card">
+        <div class="icon">☼</div>
+        <h3>Hard-copy feel</h3>
+        <p>Page-curl turns, night-shift filter, and a reader that gets out of the way.</p>
+      </div>
+      <div class="card">
+        <div class="icon">⚙</div>
+        <h3>Local-first</h3>
+        <p>Your books stay on your device. No account required. Works offline.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="download">
+    <h2>Get OneTome</h2>
+    <p class="lead">Available on the App Store and Google Play.</p>
+    <div class="hero-actions" style="justify-content: flex-start;">
+      <a class="btn" href="#">App Store</a>
+      <a class="btn" href="#">Google Play</a>
+    </div>
+    <p style="margin-top: 16px; color: var(--text-secondary); font-size: 0.9rem;">Store links coming soon. Built with Flutter.</p>
+  </section>
+
+  <footer>
+    <div>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+    </div>
+    <p style="margin-top: 12px;">&copy; 2026 OneTome. All rights reserved.</p>
+  </footer>
+</body>
+</html>
