@@ -12,6 +12,7 @@ import '../providers/reader_preferences_provider.dart';
 import '../providers/highlight_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bottom_sheet.dart';
+import '../widgets/page_curl_overlay.dart';
 import 'celebration_screen.dart';
 
 class ReaderScreen extends StatefulWidget {
@@ -492,26 +493,29 @@ class _ReaderScreenState extends State<ReaderScreen> {
       children: [
         GestureDetector(
           onTap: readerPrefs.toggleControls,
-          child: ColorFiltered(
-            colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(1 - readerPrefs.brightness),
-              BlendMode.darken,
-            ),
-            child: PdfViewer.file(
-              _book.filePath,
-              controller: _controller,
-              initialPageNumber: _currentPage,
-              params: PdfViewerParams(
-                layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
-                textSelectionParams: PdfTextSelectionParams(
-                  onTextSelectionChange: (selection) async {
-                    if (selection.isCopyAllowed) {
-                      final text = await selection.getSelectedText();
-                      if (mounted) setState(() => _selectedText = text);
-                    }
-                  },
+          child: PageCurlOverlay(
+            page: _currentPage,
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(1 - readerPrefs.brightness),
+                BlendMode.darken,
+              ),
+              child: PdfViewer.file(
+                _book.filePath,
+                controller: _controller,
+                initialPageNumber: _currentPage,
+                params: PdfViewerParams(
+                  layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
+                  textSelectionParams: PdfTextSelectionParams(
+                    onTextSelectionChange: (selection) async {
+                      if (selection.isCopyAllowed) {
+                        final text = await selection.getSelectedText();
+                        if (mounted) setState(() => _selectedText = text);
+                      }
+                    },
+                  ),
+                  onPageChanged: _onPageChanged,
                 ),
-                onPageChanged: _onPageChanged,
               ),
             ),
           ),
