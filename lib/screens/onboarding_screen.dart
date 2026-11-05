@@ -21,11 +21,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pages = [
     {
       'title': 'One book.\nFinish it.',
-      'subtitle': 'Focus on a single PDF until the last page.\nNo more unfinished books.',
+      'subtitle':
+          'Focus on a single PDF until the last page.\nNo more unfinished books.',
     },
     {
       'title': 'Progress that\nfeels real',
-      'subtitle': 'Mark pages done or “done for today”.\nCome back tomorrow and continue exactly where you left off.',
+      'subtitle':
+          'Mark pages done or “done for today”.\nCome back tomorrow and continue exactly where you left off.',
     },
     {
       'title': 'Your daily\nreading goal',
@@ -45,7 +47,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _finish() async {
     final notificationProvider = context.read<NotificationProvider>();
-    await context.read<BookProvider>().completeOnboarding(dailyGoal: _dailyGoal);
+    await context
+        .read<BookProvider>()
+        .completeOnboarding(dailyGoal: _dailyGoal);
     if (notificationProvider.enabled) {
       await notificationProvider.setTime(notificationProvider.time);
     }
@@ -94,12 +98,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     _pages.length,
                     (i) => Expanded(
                       child: Container(
-                        margin: EdgeInsets.only(right: i < _pages.length - 1 ? 6 : 0),
+                        margin: EdgeInsets.only(
+                            right: i < _pages.length - 1 ? 6 : 0),
                         height: 3,
                         decoration: BoxDecoration(
                           color: i <= _currentPage
                               ? AppTheme.primary
-                              : (isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+                              : (isDark
+                                  ? Colors.grey.shade800
+                                  : Colors.grey.shade200),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -142,24 +149,51 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           if (i == 2) ...[
                             const SizedBox(height: 40),
                             Container(
-                              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 24, 20, 16),
                               decoration: BoxDecoration(
                                 color: AppTheme.surface(context),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Column(
                                 children: [
-                                  Text(
-                                    '$_dailyGoal',
-                                    style: TextStyle(
-                                      fontSize: 64,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppTheme.textPrimary(context),
-                                      height: 1,
-                                    ),
+                                  Row(
+                                    spacing: 10,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '$_dailyGoal',
+                                            style: TextStyle(
+                                              fontSize: 64,
+                                              fontWeight: FontWeight.w700,
+                                              color:
+                                                  AppTheme.textPrimary(context),
+                                              height: 1,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text('Pages per day',
+                                              style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: AppTheme.textSecondary(
+                                                      context))),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          'Most people finish a book\nin 2–4 weeks at this pace.',
+                                          style: TextStyle(
+                                              fontSize: 13,
+                                              color: AppTheme.textSecondary(
+                                                  context)),
+                                          textAlign: TextAlign.right,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text('pages / day', style: TextStyle(fontSize: 16, color: AppTheme.textSecondary(context))),
                                   const SizedBox(height: 8),
                                   Slider(
                                     value: _dailyGoal.toDouble(),
@@ -167,13 +201,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                     max: 100,
                                     divisions: 19,
                                     activeColor: AppTheme.primary,
-                                    inactiveColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                                    onChanged: (v) => setState(() => _dailyGoal = v.round()),
-                                  ),
-                                  Text(
-                                    'Most people finish a book in 2–4 weeks at this pace.',
-                                    style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context)),
-                                    textAlign: TextAlign.center,
+                                    inactiveColor: isDark
+                                        ? Colors.grey.shade800
+                                        : Colors.grey.shade200,
+                                    onChanged: (v) =>
+                                        setState(() => _dailyGoal = v.round()),
                                   ),
                                 ],
                               ),
@@ -192,35 +224,62 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   Row(
                                     children: [
                                       Expanded(
-                                        child: Text('Daily reminder', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context), fontSize: 16)),
+                                        child: Text('Daily reminder',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                color: AppTheme.textPrimary(
+                                                    context),
+                                                fontSize: 16)),
                                       ),
                                       Switch(
                                         value: notificationProvider.enabled,
                                         activeColor: AppTheme.primary,
-                                        onChanged: notificationProvider.setEnabled,
+                                        onChanged:
+                                            notificationProvider.setEnabled,
                                       ),
                                     ],
                                   ),
                                   if (notificationProvider.enabled) ...[
                                     const SizedBox(height: 12),
-                                    Divider(height: 1, color: isDark ? Colors.grey.shade800 : Colors.grey.shade200),
+                                    Divider(
+                                        height: 1,
+                                        color: isDark
+                                            ? Colors.grey.shade800
+                                            : Colors.grey.shade200),
                                     const SizedBox(height: 12),
                                     InkWell(
                                       onTap: () async {
-                                        final t = await showTimePicker(context: context, initialTime: notificationProvider.time);
-                                        if (t != null) notificationProvider.setTime(t);
+                                        final t = await showTimePicker(
+                                            context: context,
+                                            initialTime:
+                                                notificationProvider.time);
+                                        if (t != null)
+                                          notificationProvider.setTime(t);
                                       },
                                       child: Row(
                                         children: [
-                                          const Icon(Icons.access_time, color: AppTheme.primary, size: 20),
+                                          const Icon(Icons.access_time,
+                                              color: AppTheme.primary,
+                                              size: 20),
                                           const SizedBox(width: 12),
-                                          Expanded(child: Text('Reminder time', style: TextStyle(color: AppTheme.textPrimary(context)))),
+                                          Expanded(
+                                              child: Text('Reminder time',
+                                                  style: TextStyle(
+                                                      color:
+                                                          AppTheme.textPrimary(
+                                                              context)))),
                                           Text(
-                                            notificationProvider.time.format(context),
-                                            style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.primary),
+                                            notificationProvider.time
+                                                .format(context),
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                color: AppTheme.primary),
                                           ),
                                           const SizedBox(width: 4),
-                                          Icon(Icons.chevron_right, color: AppTheme.textSecondary(context), size: 18),
+                                          Icon(Icons.chevron_right,
+                                              color: AppTheme.textSecondary(
+                                                  context),
+                                              size: 18),
                                         ],
                                       ),
                                     ),
@@ -243,7 +302,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   style: FilledButton.styleFrom(
                     backgroundColor: isDark ? AppTheme.accent : AppTheme.navy,
                     minimumSize: const Size.fromHeight(56),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(isLast ? 'Begin your first tome' : 'Continue'),
                 ),
