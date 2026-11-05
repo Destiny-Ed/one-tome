@@ -18,6 +18,7 @@
       --radius: 16px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
@@ -53,35 +54,41 @@
       background: var(--navy); color: white;
       padding: 14px 28px; border-radius: 12px;
       font-weight: 600; text-decoration: none;
+      transition: transform 0.15s ease, opacity 0.15s ease;
     }
-    .btn:hover { text-decoration: none; opacity: 0.92; }
+    .btn:hover { text-decoration: none; opacity: 0.92; transform: translateY(-1px); }
     .btn-outline {
       background: transparent; color: var(--navy);
       border: 1.5px solid var(--navy);
     }
     .hero {
       max-width: 1100px; margin: 0 auto;
-      padding: 80px 24px 60px;
+      padding: 90px 24px 70px;
       text-align: center;
     }
     .hero h1 {
-      font-size: clamp(2.5rem, 6vw, 4.2rem);
+      font-size: clamp(2.6rem, 6.5vw, 4.4rem);
       font-weight: 800; letter-spacing: -1.5px;
       line-height: 1.05; color: var(--navy);
+      animation: fadeUp 0.7s ease both;
     }
     .hero h1 span { color: var(--primary); }
     .hero p {
-      margin: 20px auto 32px;
-      max-width: 560px; font-size: 1.2rem;
+      margin: 22px auto 36px;
+      max-width: 580px; font-size: 1.22rem;
       color: var(--text-secondary);
+      animation: fadeUp 0.7s ease 0.1s both;
     }
-    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .hero-actions {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+      animation: fadeUp 0.7s ease 0.2s both;
+    }
     .section {
       max-width: 1100px; margin: 0 auto;
-      padding: 60px 24px;
+      padding: 70px 24px;
     }
     .section h2 {
-      font-size: 2rem; font-weight: 700; margin-bottom: 8px;
+      font-size: 2.1rem; font-weight: 700; margin-bottom: 8px;
       letter-spacing: -0.5px;
     }
     .section .lead {
@@ -97,6 +104,11 @@
       border-radius: var(--radius);
       padding: 28px;
       box-shadow: 0 4px 24px rgba(10,22,40,0.04);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(10,22,40,0.08);
     }
     .card h3 { font-size: 1.15rem; margin-bottom: 8px; }
     .card p { color: var(--text-secondary); font-size: 0.95rem; }
@@ -106,6 +118,51 @@
       display: flex; align-items: center; justify-content: center;
       color: white; font-size: 1.3rem; margin-bottom: 16px;
     }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 28px;
+      margin-top: 12px;
+    }
+    .step {
+      text-align: center;
+    }
+    .step-num {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--navy); color: white;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 700; margin-bottom: 14px;
+    }
+    .step h3 { margin-bottom: 6px; }
+    .step p { color: var(--text-secondary); font-size: 0.95rem; }
+    .reviews {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .review {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 4px 24px rgba(10,22,40,0.04);
+    }
+    .stars { color: #FFB800; letter-spacing: 2px; margin-bottom: 10px; }
+    .review p { font-size: 0.98rem; margin-bottom: 14px; }
+    .reviewer { font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; }
+    .faq details {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 12px rgba(10,22,40,0.03);
+    }
+    .faq summary {
+      font-weight: 600; cursor: pointer; list-style: none;
+    }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq details p {
+      margin-top: 10px; color: var(--text-secondary); font-size: 0.95rem;
+    }
     footer {
       border-top: 1px solid rgba(0,0,0,0.06);
       padding: 40px 24px;
@@ -114,8 +171,13 @@
       font-size: 0.9rem;
     }
     footer a { margin: 0 12px; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
     @media (max-width: 600px) {
       nav a { margin-left: 16px; font-size: 0.9rem; }
+      .hero { padding: 60px 20px 40px; }
     }
   </style>
 </head>
@@ -128,6 +190,8 @@
       </div>
       <nav>
         <a href="#features">Features</a>
+        <a href="#how">How it works</a>
+        <a href="#reviews">Reviews</a>
         <a href="privacy.html">Privacy</a>
         <a href="terms.html">Terms</a>
       </nav>
@@ -185,9 +249,78 @@
     </div>
   </section>
 
+  <section class="section" id="how" style="background: linear-gradient(180deg, transparent, rgba(0,122,255,0.03), transparent);">
+    <h2>How it works</h2>
+    <p class="lead">Three steps. One book. Done.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Choose your book</h3>
+        <p>Import a PDF or add a physical book with title, pages, and optional cover.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Read every day</h3>
+        <p>Hit your daily page goal, mark done for today, and keep the streak alive.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Finish it</h3>
+        <p>Reach the last page, tap Complete, and celebrate. Then start the next one.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="reviews">
+    <h2>What readers say</h2>
+    <p class="lead">Early users finishing books they’d put down for months.</p>
+    <div class="reviews">
+      <div class="review">
+        <div class="stars">★★★★★</div>
+        <p>“I had four PDFs open and zero finished. OneTome forced me to pick one. Finished it in three weeks.”</p>
+        <div class="reviewer">— Chidi, Lagos</div>
+      </div>
+      <div class="review">
+        <div class="stars">★★★★★</div>
+        <p>“Love that I can track my physical books too. Same daily goal, same notes. Feels like one system.”</p>
+        <div class="reviewer">— Amaka, Abuja</div>
+      </div>
+      <div class="review">
+        <div class="stars">★★★★★</div>
+        <p>“The done-for-today lock is perfect. I stop guilt-free and actually look forward to tomorrow.”</p>
+        <div class="reviewer">— Tunde, Port Harcourt</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section faq">
+    <h2>Questions</h2>
+    <p class="lead">Quick answers before you start.</p>
+    <details>
+      <summary>Do I need an account?</summary>
+      <p>No. OneTome is local-first. Your books, progress, and notes stay on your device.</p>
+    </details>
+    <details>
+      <summary>Can I read physical books?</summary>
+      <p>Yes. Add a physical book with title and total pages, then log your current page and notes as you read.</p>
+    </details>
+    <details>
+      <summary>What happens if I want to start a second book?</summary>
+      <p>You can’t — until you finish the first one. That’s the point.</p>
+    </details>
+    <details>
+      <summary>Does it work offline?</summary>
+      <p>Yes. Everything works without an internet connection.</p>
+    </details>
+    <details>
+      <summary>Can I export my notes?</summary>
+      <p>Yes. Highlights and notes can be copied or exported from the reader.</p>
+    </details>
+  </section>
+
   <section class="section" id="download">
     <h2>Get OneTome</h2>
-    <p class="lead">Available on the App Store and Google Play.</p>
+    <p class="lead">Available on the App Store and Google Play. One book at a time.</p>
     <div class="hero-actions" style="justify-content: flex-start;">
       <a class="btn" href="#">App Store</a>
       <a class="btn" href="#">Google Play</a>
