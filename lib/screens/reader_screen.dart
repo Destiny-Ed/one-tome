@@ -34,6 +34,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
   bool _nightMode = false;
   double _zoom = 1.0;
 
+  static const _nightShiftMatrix = [
+    1.15, 0.05, 0.0, 0, 25,
+    0.0, 0.82, 0.0, 0, 8,
+    0.0, 0.0, 0.5, 0, 0,
+    0, 0, 0, 1, 0,
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -211,7 +218,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           children: [
             Row(
               children: [
-                Icon(_nightMode ? Icons.dark_mode : Icons.light_mode, color: AppTheme.primary, size: 20),
+                Icon(_nightMode ? Icons.nightlight_round : Icons.light_mode, color: AppTheme.primary, size: 20),
                 const SizedBox(width: 12),
                 Expanded(child: Text(_nightMode ? 'Night shift' : 'Light mode', style: TextStyle(color: AppTheme.textPrimary(ctx)))),
                 Switch(
@@ -405,6 +412,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
   }
 
+  Widget _wrapNightShift(Widget child) {
+    if (!_nightMode) return child;
+    return ColorFiltered(
+      colorFilter: const ColorFilter.matrix(_nightShiftMatrix),
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bookProvider = context.watch<BookProvider>();
@@ -454,6 +469,89 @@ class _ReaderScreenState extends State<ReaderScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndShowGoalDialog());
     }
 
+    final body = Stack(
+      children: [
+        GestureDetector(
+          onTap: readerPrefs.toggleControls,
+          child: ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(1 - readerPrefs.brightness),
+              BlendMode.darken,
+            ),
+            child: PdfViewer.file(
+              _book.filePath,
+              controller: _controller,
+              initialPageNumber: _currentPage,
+              params: PdfViewerParams(
+                layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
+                textSelectionParams: PdfTextSelectionParams(
+                  onTextSelectionChange: (selection) async {
+                    if (selection.isCopyAllowed) {
+                      final text = await selection.getSelectedText();
+                      if (mounted) setState(() => _selectedText = text);
+                    }
+                  },
+                ),
+                onPageChanged: (page) {
+                  if (page == null) return;
+                  setState(() => _currentPage = page);
+                  if (widget.trackProgress) {
+                    bookProvider.updateProgress(page);
+                  }
+                  _playPageSound();
+                  HapticFeedback.selectionClick();
+                },
+              ),
+            ),
+          ),
+        ),
+        if (readerPrefs.showControls)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+              decoration: BoxDecoration(
+                color: appBarBg,
+                border: Border(top: BorderSide(color: _nightMode ? const Color(0xFF3D2E1A) : (isDark ? Colors.grey.shade800 : Colors.grey.shade200))),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.chevron_left, color: fg),
+                      onPressed: _currentPage > 1 ? () => _goToPage(_currentPage - 1) : null,
+                    ),
+                    Text('$_currentPage / ${_book.totalPages}', style: TextStyle(color: fg, fontWeight: FontWeight.w600)),
+                    IconButton(
+                      icon: Icon(Icons.chevron_right, color: fg),
+                      onPressed: _currentPage < _book.totalPages ? () => _goToPage(_currentPage + 1) : null,
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.zoom_out, color: fg),
+                      onPressed: () {
+                        _controller.zoomDown();
+                        setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 3.0));
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.zoom_in, color: fg),
+                      onPressed: () {
+                        _controller.zoomUp();
+                        setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 3.0));
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: _nightMode ? SystemUiOverlayStyle.light : (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark),
       child: Scaffold(
@@ -486,100 +584,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
             ),
           ],
         ),
-        body: Stack(
-          children: [
-            GestureDetector(
-              onTap: readerPrefs.toggleControls,
-              child: ColorFiltered(
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(1 - readerPrefs.brightness),
-                  BlendMode.darken,
-                ),
-                child: PdfViewer.file(
-                  _book.filePath,
-                  controller: _controller,
-                  initialPageNumber: _currentPage,
-                  params: PdfViewerParams(
-                    layoutPages: (pages, params) => _buildLayout(pages, params, readerPrefs.layout),
-                    textSelectionParams: PdfTextSelectionParams(
-                      onTextSelectionChange: (selection) async {
-                        if (selection.isCopyAllowed) {
-                          final text = await selection.getSelectedText();
-                          if (mounted) setState(() => _selectedText = text);
-                        }
-                      },
-                    ),
-                    onPageChanged: (page) {
-                      if (page == null) return;
-                      setState(() => _currentPage = page);
-                      if (widget.trackProgress) {
-                        bookProvider.updateProgress(page);
-                      }
-                      _playPageSound();
-                      HapticFeedback.selectionClick();
-                    },
-                  ),
-                ),
-              ),
-            ),
-            if (_nightMode)
-              IgnorePointer(
-                child: ColorFiltered(
-                  colorFilter: const ColorFilter.matrix([
-                    1.1, 0.0, 0.0, 0, 20,
-                    0.0, 0.85, 0.0, 0, 10,
-                    0.0, 0.0, 0.55, 0, 0,
-                    0, 0, 0, 1, 0,
-                  ]),
-                  child: Container(color: Colors.white),
-                ),
-              ),
-            if (readerPrefs.showControls)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
-                  decoration: BoxDecoration(
-                    color: appBarBg,
-                    border: Border(top: BorderSide(color: _nightMode ? const Color(0xFF3D2E1A) : (isDark ? Colors.grey.shade800 : Colors.grey.shade200))),
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.chevron_left, color: fg),
-                          onPressed: _currentPage > 1 ? () => _goToPage(_currentPage - 1) : null,
-                        ),
-                        Text('$_currentPage / ${_book.totalPages}', style: TextStyle(color: fg, fontWeight: FontWeight.w600)),
-                        IconButton(
-                          icon: Icon(Icons.chevron_right, color: fg),
-                          onPressed: _currentPage < _book.totalPages ? () => _goToPage(_currentPage + 1) : null,
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.zoom_out, color: fg),
-                          onPressed: () {
-                            _controller.zoomDown();
-                            setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 3.0));
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.zoom_in, color: fg),
-                          onPressed: () {
-                            _controller.zoomUp();
-                            setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 3.0));
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
+        body: _wrapNightShift(body),
       ),
     );
   }
