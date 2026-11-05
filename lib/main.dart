@@ -5,8 +5,7 @@ import 'providers/theme_provider.dart';
 import 'providers/reader_preferences_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/highlight_provider.dart';
-import 'screens/onboarding_screen.dart';
-import 'screens/main_shell.dart';
+import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 
@@ -33,7 +32,6 @@ class OneTomeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    final bookProvider = context.watch<BookProvider>();
 
     return MaterialApp(
       title: 'OneTome',
@@ -41,9 +39,7 @@ class OneTomeApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeProvider.themeMode,
-      home: bookProvider.hasCompletedOnboarding
-          ? const MainShell()
-          : const OnboardingScreen(),
+      home: const SplashScreen(),
     );
   }
 }
