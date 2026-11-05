@@ -86,16 +86,19 @@ class SettingsScreen extends StatelessWidget {
                   title: 'Appearance',
                   children: [
                     _ThemeOption(
+                      icon: Icons.brightness_auto,
                       label: 'System',
                       selected: themeProvider.themeMode == ThemeMode.system,
                       onTap: () => themeProvider.setThemeMode(ThemeMode.system),
                     ),
                     _ThemeOption(
+                      icon: Icons.light_mode_outlined,
                       label: 'Light',
                       selected: themeProvider.themeMode == ThemeMode.light,
                       onTap: () => themeProvider.setThemeMode(ThemeMode.light),
                     ),
                     _ThemeOption(
+                      icon: Icons.dark_mode_outlined,
                       label: 'Dark',
                       selected: themeProvider.themeMode == ThemeMode.dark,
                       onTap: () => themeProvider.setThemeMode(ThemeMode.dark),
@@ -265,11 +268,17 @@ class _SettingRow extends StatelessWidget {
 }
 
 class _ThemeOption extends StatelessWidget {
+  final IconData icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
-  const _ThemeOption({required this.label, required this.selected, required this.onTap});
+  const _ThemeOption({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -282,10 +291,29 @@ class _ThemeOption extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 18, color: AppTheme.primary),
+              ),
+              const SizedBox(width: 14),
               Expanded(
                 child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
               ),
-              if (selected) const Icon(Icons.check, color: AppTheme.primary, size: 20),
+              if (selected)
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check, color: Colors.white, size: 14),
+                ),
             ],
           ),
         ),
