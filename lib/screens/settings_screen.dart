@@ -183,7 +183,7 @@ class SettingsScreen extends StatelessWidget {
                     _SettingRow(
                       icon: Icons.auto_stories_outlined,
                       title: 'OneTome',
-                      subtitle: 'One book. Finish it.\nLocal-first PDF reader',
+                      subtitle: 'One book. Finish it.\nLocal-first Book reader',
                     ),
                   ],
                 ),

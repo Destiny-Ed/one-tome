@@ -8,9 +8,9 @@
 **Content rating:** Everyone / 4+  
 **Price:** Free  
 **Support email:** support@onetome.app  
-**Privacy policy URL:** https://yourdomain.com/privacy.html  
-**Marketing URL:** https://yourdomain.com  
-
+**Privacy policy URL:** https://onetome.netlify.app/privacy
+**Marketing URL:** https://onetome.netlify.app
+**Package Name:** app.one.tome
 ---
 
 ## Google Play

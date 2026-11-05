@@ -22,7 +22,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'title': 'One book.\nFinish it.',
       'subtitle':
-          'Focus on a single PDF until the last page.\nNo more unfinished books.',
+          'Focus on a single BOOK until the last page.\nNo more unfinished books.',
     },
     {
       'title': 'Progress that\nfeels real',

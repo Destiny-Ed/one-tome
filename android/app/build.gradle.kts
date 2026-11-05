@@ -13,7 +13,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "app.one_tome"
+    namespace = "app.one.tome"
     compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
@@ -24,7 +24,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "app.one_tome"
+        applicationId = "app.one.tome"
         minSdk = flutter.minSdkVersion
         targetSdk = 37
         versionCode = flutter.versionCode
