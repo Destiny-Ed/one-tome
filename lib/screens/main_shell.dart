@@ -1,5 +1,5 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'settings_screen.dart';
 
@@ -23,40 +23,83 @@ class _MainShellState extends State<MainShell> {
     return Scaffold(
       body: _screens[_index],
       bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-            child: Container(
-              height: 80,
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(color: Colors.white.withOpacity(0.08)),
+        minimum: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        child: Container(
+          height: 64,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
               ),
-              child: NavigationBar(
-                selectedIndex: _index,
-                onDestinationSelected: (i) => setState(() => _index = i),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                indicatorColor:
-                    Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                destinations: const [
-                  NavigationDestination(
-                    icon: Icon(Icons.home_outlined),
-                    selectedIcon: Icon(Icons.home),
-                    label: 'Home',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.settings_outlined),
-                    selectedIcon: Icon(Icons.settings),
-                    label: 'Settings',
-                  ),
-                ],
+            ],
+          ),
+          child: Row(
+            children: [
+              _NavItem(
+                icon: Icons.home_outlined,
+                selectedIcon: Icons.home,
+                label: 'Home',
+                selected: _index == 0,
+                onTap: () => setState(() => _index = 0),
+              ),
+              _NavItem(
+                icon: Icons.settings_outlined,
+                selectedIcon: Icons.settings,
+                label: 'Settings',
+                selected: _index == 1,
+                onTap: () => setState(() => _index = 1),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              selected ? selectedIcon : icon,
+              color: selected ? AppTheme.primary : AppTheme.textMuted,
+              size: 22,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: selected ? AppTheme.primary : AppTheme.textMuted,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
