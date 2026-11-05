@@ -20,6 +20,8 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: _screens[_index],
       bottomNavigationBar: SafeArea(
@@ -27,11 +29,11 @@ class _MainShellState extends State<MainShell> {
         child: Container(
           height: 64,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark ? AppTheme.darkSurface : Colors.white,
             borderRadius: BorderRadius.circular(32),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.06),
+                color: Colors.black.withOpacity(isDark ? 0.3 : 0.06),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -78,6 +80,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final muted = AppTheme.textSecondary(context);
+
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -87,7 +91,7 @@ class _NavItem extends StatelessWidget {
           children: [
             Icon(
               selected ? selectedIcon : icon,
-              color: selected ? AppTheme.primary : AppTheme.textMuted,
+              color: selected ? AppTheme.primary : muted,
               size: 22,
             ),
             const SizedBox(height: 2),
@@ -95,7 +99,7 @@ class _NavItem extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 11,
-                color: selected ? AppTheme.primary : AppTheme.textMuted,
+                color: selected ? AppTheme.primary : muted,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
