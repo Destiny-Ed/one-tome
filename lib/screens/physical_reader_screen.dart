@@ -192,87 +192,90 @@ class _PhysicalReaderScreenState extends State<PhysicalReaderScreen> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (book.author != null)
-                Text(book.author!, style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 16)),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: book.progress,
-                  minHeight: 8,
-                  backgroundColor: Colors.grey.withOpacity(0.2),
-                  color: AppTheme.primary,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (book.author != null)
+                  Text(book.author!, style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 16)),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: book.progress,
+                    minHeight: 8,
+                    backgroundColor: Colors.grey.withOpacity(0.2),
+                    color: AppTheme.primary,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text('${book.currentPage} of ${book.totalPages} pages',
-                  style: TextStyle(color: AppTheme.textSecondary(context))),
-              const SizedBox(height: 28),
-              Text('Update your page', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context))),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _pageController,
-                enabled: !isLocked,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Current page',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 8),
+                Text('${book.currentPage} of ${book.totalPages} pages',
+                    style: TextStyle(color: AppTheme.textSecondary(context))),
+                const SizedBox(height: 28),
+                Text('Update your page', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context))),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _pageController,
+                  enabled: !isLocked,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Current page',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: isLocked ? null : _saveProgress,
-                child: const Text('Save progress'),
-              ),
-              if (isLocked) ...[
                 const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.lock_clock, color: Colors.amber, size: 18),
-                      SizedBox(width: 8),
-                      Expanded(child: Text('Done for today. Come back tomorrow.')),
-                    ],
-                  ),
+                FilledButton(
+                  onPressed: isLocked ? null : _saveProgress,
+                  child: const Text('Save progress'),
                 ),
-              ],
-              const SizedBox(height: 28),
-              OutlinedButton.icon(
-                onPressed: _addNote,
-                icon: const Icon(Icons.add),
-                label: const Text('Add a note'),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: isLocked
-                    ? null
-                    : () async {
-                        await context.read<BookProvider>().markDoneForToday();
-                        if (mounted) Navigator.pop(context);
-                      },
-                icon: const Icon(Icons.done_all),
-                label: const Text('Done for today'),
-              ),
-              if (onLast && !isLocked) ...[
-                const SizedBox(height: 20),
-                FilledButton.icon(
-                  onPressed: _complete,
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Complete book'),
-                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                if (isLocked) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.lock_clock, color: Colors.amber, size: 18),
+                        SizedBox(width: 8),
+                        Expanded(child: Text('Done for today. Come back tomorrow.')),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 28),
+                OutlinedButton.icon(
+                  onPressed: _addNote,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add a note'),
                 ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: isLocked
+                      ? null
+                      : () async {
+                          await context.read<BookProvider>().markDoneForToday();
+                          if (mounted) Navigator.pop(context);
+                        },
+                  icon: const Icon(Icons.done_all),
+                  label: const Text('Done for today'),
+                ),
+                if (onLast && !isLocked) ...[
+                  const SizedBox(height: 20),
+                  FilledButton.icon(
+                    onPressed: _complete,
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: const Text('Complete book'),
+                    style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

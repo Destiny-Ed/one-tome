@@ -26,17 +26,12 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>OneTome needs access to your photo library so you can import PDF books.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>OneTome can save exported notes or highlights to your photo library if you choose.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>OneTome needs access to your documents so you can import PDF books from Files.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>remote-notification</string>
-	</array>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>OneTome can save exported notes or highlights to your photo library if you choose.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>OneTome needs access to your photo library so you can import PDF books.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -60,6 +55,11 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
