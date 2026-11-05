@@ -8,14 +8,14 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M30 35h40v40H30z' fill='white'/><path d='M48 28l18 18-18 18z' fill='%2300C853'/></svg>" />
   <style>
     :root {
-      --primary: #007AFF;
-      --accent: #00C853;
-      --navy: #0A1628;
-      --bg: #F7F8FA;
+      --primary: #0066FF;
+      --accent: #00D68F;
+      --navy: #0B1220;
+      --bg: #F4F7FB;
       --surface: #FFFFFF;
-      --text: #0A1628;
-      --text-secondary: #5C6B7A;
-      --radius: 16px;
+      --text: #0B1220;
+      --text-secondary: #5A6A7A;
+      --radius: 20px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -26,135 +26,176 @@
       line-height: 1.6;
     }
     a { color: var(--primary); text-decoration: none; }
-    a:hover { text-decoration: underline; }
     header {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(247,248,250,0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(0,0,0,0.06);
+      background: rgba(244,247,251,0.8);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(0,0,0,0.05);
     }
     .nav {
-      max-width: 1100px; margin: 0 auto;
+      max-width: 1120px; margin: 0 auto;
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 24px;
     }
     .logo {
       display: flex; align-items: center; gap: 10px;
-      font-weight: 700; font-size: 1.25rem; color: var(--navy);
+      font-weight: 800; font-size: 1.3rem; color: var(--navy); letter-spacing: -0.3px;
     }
     .logo-mark {
-      width: 36px; height: 36px; border-radius: 10px;
+      width: 38px; height: 38px; border-radius: 12px;
       background: linear-gradient(135deg, var(--primary), var(--accent));
       display: flex; align-items: center; justify-content: center;
-      color: white; font-weight: 800;
+      color: white; font-weight: 800; font-size: 1.1rem;
     }
-    nav a { margin-left: 24px; color: var(--text); font-weight: 500; }
+    nav a { margin-left: 22px; color: var(--text); font-weight: 500; font-size: 0.95rem; }
+    nav a:hover { color: var(--primary); }
     .btn {
       display: inline-block;
-      background: var(--navy); color: white;
-      padding: 14px 28px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), #0052CC);
+      color: white;
+      padding: 14px 28px; border-radius: 14px;
       font-weight: 600; text-decoration: none;
-      transition: transform 0.15s ease, opacity 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 4px 14px rgba(0,102,255,0.25);
     }
-    .btn:hover { text-decoration: none; opacity: 0.92; transform: translateY(-1px); }
+    .btn:hover { text-decoration: none; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,102,255,0.3); }
     .btn-outline {
       background: transparent; color: var(--navy);
       border: 1.5px solid var(--navy);
+      box-shadow: none;
     }
+    .btn-outline:hover { background: var(--navy); color: white; }
     .hero {
-      max-width: 1100px; margin: 0 auto;
-      padding: 90px 24px 70px;
+      max-width: 1120px; margin: 0 auto;
+      padding: 100px 24px 80px;
       text-align: center;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(0,102,255,0.08), transparent 60%);
+      pointer-events: none;
     }
     .hero h1 {
-      font-size: clamp(2.6rem, 6.5vw, 4.4rem);
-      font-weight: 800; letter-spacing: -1.5px;
-      line-height: 1.05; color: var(--navy);
-      animation: fadeUp 0.7s ease both;
+      font-size: clamp(2.8rem, 7vw, 4.8rem);
+      font-weight: 800; letter-spacing: -2px;
+      line-height: 1.02; color: var(--navy);
+      animation: fadeUp 0.8s ease both;
     }
-    .hero h1 span { color: var(--primary); }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
     .hero p {
-      margin: 22px auto 36px;
-      max-width: 580px; font-size: 1.22rem;
+      margin: 24px auto 40px;
+      max-width: 600px; font-size: 1.25rem;
       color: var(--text-secondary);
-      animation: fadeUp 0.7s ease 0.1s both;
+      animation: fadeUp 0.8s ease 0.1s both;
     }
     .hero-actions {
-      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
-      animation: fadeUp 0.7s ease 0.2s both;
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+      animation: fadeUp 0.8s ease 0.2s both;
     }
     .section {
-      max-width: 1100px; margin: 0 auto;
-      padding: 70px 24px;
+      max-width: 1120px; margin: 0 auto;
+      padding: 80px 24px;
     }
     .section h2 {
-      font-size: 2.1rem; font-weight: 700; margin-bottom: 8px;
-      letter-spacing: -0.5px;
+      font-size: 2.2rem; font-weight: 800; margin-bottom: 8px;
+      letter-spacing: -0.6px;
     }
     .section .lead {
-      color: var(--text-secondary); margin-bottom: 40px; max-width: 560px;
+      color: var(--text-secondary); margin-bottom: 36px; max-width: 540px; font-size: 1.05rem;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 20px;
+    /* Feature carousel */
+    .carousel-wrap {
+      position: relative;
     }
-    .card {
+    .carousel {
+      display: flex; gap: 16px;
+      overflow-x: auto; scroll-snap-type: x mandatory;
+      scrollbar-width: none; padding: 8px 0 24px;
+    }
+    .carousel::-webkit-scrollbar { display: none; }
+    .carousel-card {
+      flex: 0 0 280px;
+      scroll-snap-align: start;
       background: var(--surface);
       border-radius: var(--radius);
       padding: 28px;
-      box-shadow: 0 4px 24px rgba(10,22,40,0.04);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 8px 32px rgba(11,18,32,0.06);
+      transition: transform 0.2s ease;
     }
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 32px rgba(10,22,40,0.08);
-    }
-    .card h3 { font-size: 1.15rem; margin-bottom: 8px; }
-    .card p { color: var(--text-secondary); font-size: 0.95rem; }
+    .carousel-card:hover { transform: translateY(-4px); }
+    .carousel-card h3 { font-size: 1.15rem; margin: 12px 0 6px; }
+    .carousel-card p { color: var(--text-secondary); font-size: 0.95rem; }
     .icon {
-      width: 44px; height: 44px; border-radius: 12px;
+      width: 48px; height: 48px; border-radius: 14px;
       background: linear-gradient(135deg, var(--primary), #5AC8FA);
       display: flex; align-items: center; justify-content: center;
-      color: white; font-size: 1.3rem; margin-bottom: 16px;
+      color: white; font-size: 1.4rem;
     }
+    .carousel-nav {
+      display: flex; gap: 8px; margin-top: 8px;
+    }
+    .carousel-nav button {
+      width: 40px; height: 40px; border-radius: 12px;
+      border: 1.5px solid #E2E8F0; background: white;
+      cursor: pointer; font-size: 1.1rem;
+      transition: all 0.15s ease;
+    }
+    .carousel-nav button:hover { border-color: var(--primary); color: var(--primary); }
+    /* Reviews marquee */
+    .marquee-wrap {
+      overflow: hidden;
+      mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+    }
+    .marquee {
+      display: flex; gap: 16px;
+      animation: marquee 28s linear infinite;
+      width: max-content;
+    }
+    .marquee:hover { animation-play-state: paused; }
+    .review {
+      width: 320px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(11,18,32,0.06);
+    }
+    .stars { color: #FFB800; letter-spacing: 2px; margin-bottom: 10px; font-size: 0.95rem; }
+    .review p { font-size: 0.98rem; margin-bottom: 14px; }
+    .reviewer { font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+    /* Steps */
     .steps {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 28px;
       margin-top: 12px;
     }
-    .step {
-      text-align: center;
-    }
+    .step { text-align: center; }
     .step-num {
-      width: 48px; height: 48px; border-radius: 50%;
-      background: var(--navy); color: white;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
       display: inline-flex; align-items: center; justify-content: center;
-      font-weight: 700; margin-bottom: 14px;
+      font-weight: 800; margin-bottom: 14px; font-size: 1.2rem;
     }
     .step h3 { margin-bottom: 6px; }
     .step p { color: var(--text-secondary); font-size: 0.95rem; }
-    .reviews {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-    .review {
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: 0 4px 24px rgba(10,22,40,0.04);
-    }
-    .stars { color: #FFB800; letter-spacing: 2px; margin-bottom: 10px; }
-    .review p { font-size: 0.98rem; margin-bottom: 14px; }
-    .reviewer { font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; }
+    /* FAQ */
     .faq details {
       background: var(--surface);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 16px 20px;
       margin-bottom: 10px;
-      box-shadow: 0 2px 12px rgba(10,22,40,0.03);
+      box-shadow: 0 2px 12px rgba(11,18,32,0.04);
     }
     .faq summary {
       font-weight: 600; cursor: pointer; list-style: none;
@@ -172,12 +213,13 @@
     }
     footer a { margin: 0 12px; }
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
+      from { opacity: 0; transform: translateY(18px); }
       to { opacity: 1; transform: translateY(0); }
     }
     @media (max-width: 600px) {
-      nav a { margin-left: 16px; font-size: 0.9rem; }
-      .hero { padding: 60px 20px 40px; }
+      nav a { margin-left: 14px; font-size: 0.85rem; }
+      .hero { padding: 70px 20px 50px; }
+      .carousel-card { flex: 0 0 260px; }
     }
   </style>
 </head>
@@ -210,46 +252,52 @@
   <section class="section" id="features">
     <h2>Built for finishing</h2>
     <p class="lead">Everything is designed to keep you in one book until the last page.</p>
-    <div class="grid">
-      <div class="card">
-        <div class="icon">1</div>
-        <h3>One book rule</h3>
-        <p>Only one active book. You can’t start a second until the first is finished.</p>
+    <div class="carousel-wrap">
+      <div class="carousel" id="featureCarousel">
+        <div class="carousel-card">
+          <div class="icon">1</div>
+          <h3>One book rule</h3>
+          <p>Only one active book. You can’t start a second until the first is finished.</p>
+        </div>
+        <div class="carousel-card">
+          <div class="icon">📖</div>
+          <h3>PDF or physical</h3>
+          <p>Import a PDF or track a hard copy you already own. Same goals, streaks, and notes.</p>
+        </div>
+        <div class="carousel-card">
+          <div class="icon">✓</div>
+          <h3>Daily goal</h3>
+          <p>Set pages per day. Mark “done for today” and pick up exactly where you left off.</p>
+        </div>
+        <div class="carousel-card">
+          <div class="icon">★</div>
+          <h3>Streaks & progress</h3>
+          <p>Track your streak and see real progress instead of endless bookmarks.</p>
+        </div>
+        <div class="carousel-card">
+          <div class="icon">✎</div>
+          <h3>Highlights & notes</h3>
+          <p>Select text in PDFs or add free-form notes for physical books. Export anytime.</p>
+        </div>
+        <div class="carousel-card">
+          <div class="icon">☼</div>
+          <h3>Hard-copy feel</h3>
+          <p>Page-curl turns and night-shift filter for PDFs. Clean progress view for physical books.</p>
+        </div>
+        <div class="carousel-card">
+          <div class="icon">⚙</div>
+          <h3>Local-first</h3>
+          <p>Your books and notes stay on your device. No account required. Works offline.</p>
+        </div>
       </div>
-      <div class="card">
-        <div class="icon">📖</div>
-        <h3>PDF or physical</h3>
-        <p>Import a PDF or track a hard copy you already own. Same goals, streaks, and notes.</p>
-      </div>
-      <div class="card">
-        <div class="icon">✓</div>
-        <h3>Daily goal</h3>
-        <p>Set pages per day. Mark “done for today” and pick up exactly where you left off.</p>
-      </div>
-      <div class="card">
-        <div class="icon">★</div>
-        <h3>Streaks & progress</h3>
-        <p>Track your streak and see real progress instead of endless bookmarks.</p>
-      </div>
-      <div class="card">
-        <div class="icon">✎</div>
-        <h3>Highlights & notes</h3>
-        <p>Select text in PDFs or add free-form notes for physical books. Export anytime.</p>
-      </div>
-      <div class="card">
-        <div class="icon">☼</div>
-        <h3>Hard-copy feel</h3>
-        <p>Page-curl turns and night-shift filter for PDFs. Clean progress view for physical books.</p>
-      </div>
-      <div class="card">
-        <div class="icon">⚙</div>
-        <h3>Local-first</h3>
-        <p>Your books and notes stay on your device. No account required. Works offline.</p>
+      <div class="carousel-nav">
+        <button onclick="scrollCarousel(-1)" aria-label="Previous">←</button>
+        <button onclick="scrollCarousel(1)" aria-label="Next">→</button>
       </div>
     </div>
   </section>
 
-  <section class="section" id="how" style="background: linear-gradient(180deg, transparent, rgba(0,122,255,0.03), transparent);">
+  <section class="section" id="how" style="background: linear-gradient(180deg, transparent, rgba(0,102,255,0.04), transparent);">
     <h2>How it works</h2>
     <p class="lead">Three steps. One book. Done.</p>
     <div class="steps">
@@ -274,21 +322,49 @@
   <section class="section" id="reviews">
     <h2>What readers say</h2>
     <p class="lead">Early users finishing books they’d put down for months.</p>
-    <div class="reviews">
-      <div class="review">
-        <div class="stars">★★★★★</div>
-        <p>“I had four PDFs open and zero finished. OneTome forced me to pick one. Finished it in three weeks.”</p>
-        <div class="reviewer">— Chidi, Lagos</div>
-      </div>
-      <div class="review">
-        <div class="stars">★★★★★</div>
-        <p>“Love that I can track my physical books too. Same daily goal, same notes. Feels like one system.”</p>
-        <div class="reviewer">— Amaka, Abuja</div>
-      </div>
-      <div class="review">
-        <div class="stars">★★★★★</div>
-        <p>“The done-for-today lock is perfect. I stop guilt-free and actually look forward to tomorrow.”</p>
-        <div class="reviewer">— Tunde, Port Harcourt</div>
+    <div class="marquee-wrap">
+      <div class="marquee">
+        <div class="review">
+          <div class="stars">★★★★★</div>
+          <p>“I had four PDFs open and zero finished. OneTome forced me to pick one. Finished it in three weeks.”</p>
+          <div class="reviewer">— Chidi, Lagos</div>
+        </div>
+        <div class="review">
+          <div class="stars">★★★★★</div>
+          <p>“Love that I can track my physical books too. Same daily goal, same notes. Feels like one system.”</p>
+          <div class="reviewer">— Amaka, Abuja</div>
+        </div>
+        <div class="review">
+          <div class="stars">★★★★★</div>
+          <p>“The done-for-today lock is perfect. I stop guilt-free and actually look forward to tomorrow.”</p>
+          <div class="reviewer">— Tunde, Port Harcourt</div>
+        </div>
+        <div class="review">
+          <div class="stars">★★★★★</div>
+          <p>“Finally an app that treats finishing as the goal. Simple, focused, and it actually works.”</p>
+          <div class="reviewer">— Ngozi, Enugu</div>
+        </div>
+        <!-- duplicate for seamless loop -->
+        <div class="review">
+          <div class="stars">★★★★★</div>
+          <p>“I had four PDFs open and zero finished. OneTome forced me to pick one. Finished it in three weeks.”</p>
+          <div class="reviewer">— Chidi, Lagos</div>
+        </div>
+        <div class="review">
+          <div class="stars">★★★★★</div>
+          <p>“Love that I can track my physical books too. Same daily goal, same notes. Feels like one system.”</p>
+          <div class="reviewer">— Amaka, Abuja</div>
+        </div>
+        <div class="review">
+          <div class="stars">★★★★★</div>
+          <p>“The done-for-today lock is perfect. I stop guilt-free and actually look forward to tomorrow.”</p>
+          <div class="reviewer">— Tunde, Port Harcourt</div>
+        </div>
+        <div class="review">
+          <div class="stars">★★★★★</div>
+          <p>“Finally an app that treats finishing as the goal. Simple, focused, and it actually works.”</p>
+          <div class="reviewer">— Ngozi, Enugu</div>
+        </div>
       </div>
     </div>
   </section>
@@ -335,5 +411,12 @@
     </div>
     <p style="margin-top: 12px;">&copy; 2026 OneTome. All rights reserved.</p>
   </footer>
+
+  <script>
+    function scrollCarousel(dir) {
+      const el = document.getElementById('featureCarousel');
+      el.scrollBy({ left: dir * 300, behavior: 'smooth' });
+    }
+  </script>
 </body>
 </html>
