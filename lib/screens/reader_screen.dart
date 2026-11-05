@@ -34,7 +34,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   bool _nightMode = false;
   double _zoom = 1.0;
 
-  static const _nightShiftMatrix = [
+  static const _nightShiftMatrix = <double>[
     1.15, 0.05, 0.0, 0, 25,
     0.0, 0.82, 0.0, 0, 8,
     0.0, 0.0, 0.5, 0, 0,

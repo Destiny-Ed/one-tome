@@ -10,7 +10,8 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   void _editGoal(BuildContext context, BookProvider provider) {
-    final controller = TextEditingController(text: provider.dailyGoalPages.toString());
+    final controller =
+        TextEditingController(text: provider.dailyGoalPages.toString());
     AppBottomSheet.show(
       context: context,
       title: 'Daily reading goal',
@@ -26,7 +27,8 @@ class SettingsScreen extends StatelessWidget {
       actions: [
         FilledButton(
           onPressed: () {
-            final pages = int.tryParse(controller.text) ?? provider.dailyGoalPages;
+            final pages =
+                int.tryParse(controller.text) ?? provider.dailyGoalPages;
             provider.updateDailyGoal(pages.clamp(5, 200));
             Navigator.pop(context);
           },
@@ -41,7 +43,8 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       title: 'Clear all data?',
       subtitle: 'This cannot be undone.',
-      child: const Text('This will remove your current book, history, streak, and reset onboarding.'),
+      child: const Text(
+          'This will remove your current book, history, streak, and reset onboarding.'),
       actions: [
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -49,7 +52,8 @@ class SettingsScreen extends StatelessWidget {
             await context.read<BookProvider>().clearAllData();
             if (context.mounted) {
               Navigator.pop(context);
-              Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil('/', (route) => false);
             }
           },
           child: const Text('Clear everything'),
@@ -73,13 +77,14 @@ class SettingsScreen extends StatelessWidget {
       backgroundColor: AppTheme.background(context),
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
+          SliverAppBar(
+            centerTitle: false,
             title: const Text('Settings'),
             pinned: true,
             backgroundColor: AppTheme.background(context),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 _Section(
@@ -118,12 +123,15 @@ class SettingsScreen extends StatelessWidget {
                     _SettingRow(
                       icon: Icons.local_fire_department_outlined,
                       title: 'Current streak',
-                      subtitle: '${bookProvider.streak} day${bookProvider.streak == 1 ? '' : 's'}',
+                      subtitle:
+                          '${bookProvider.streak} day${bookProvider.streak == 1 ? '' : 's'}',
                     ),
                     _SettingRow(
                       icon: Icons.notifications_none,
                       title: 'Daily reminder',
-                      subtitle: notificationProvider.enabled ? notificationProvider.time.format(context) : 'Off',
+                      subtitle: notificationProvider.enabled
+                          ? notificationProvider.time.format(context)
+                          : 'Off',
                       trailing: Switch(
                         value: notificationProvider.enabled,
                         activeColor: AppTheme.primary,
@@ -136,8 +144,11 @@ class SettingsScreen extends StatelessWidget {
                         title: 'Reminder time',
                         subtitle: notificationProvider.time.format(context),
                         onTap: () async {
-                          final picked = await showTimePicker(context: context, initialTime: notificationProvider.time);
-                          if (picked != null) notificationProvider.setTime(picked);
+                          final picked = await showTimePicker(
+                              context: context,
+                              initialTime: notificationProvider.time);
+                          if (picked != null)
+                            notificationProvider.setTime(picked);
                         },
                       ),
                   ],
@@ -156,9 +167,9 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                _Section(
+                const _Section(
                   title: 'About',
-                  children: const [
+                  children: [
                     _SettingRow(
                       icon: Icons.auto_stories_outlined,
                       title: 'OneTome',
@@ -245,20 +256,31 @@ class _SettingRow extends StatelessWidget {
                   color: (iconColor ?? AppTheme.primary).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, size: 18, color: iconColor ?? AppTheme.primary),
+                child:
+                    Icon(icon, size: 18, color: iconColor ?? AppTheme.primary),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context))),
+                    Text(title,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary(context))),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context))),
+                    Text(subtitle,
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.textSecondary(context))),
                   ],
                 ),
               ),
-              if (trailing != null) trailing! else if (onTap != null) Icon(Icons.chevron_right, color: AppTheme.textSecondary(context), size: 20),
+              if (trailing != null)
+                trailing!
+              else if (onTap != null)
+                Icon(Icons.chevron_right,
+                    color: AppTheme.textSecondary(context), size: 20),
             ],
           ),
         ),
@@ -302,7 +324,10 @@ class _ThemeOption extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               Expanded(
-                child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
+                child: Text(label,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: AppTheme.textPrimary(context))),
               ),
               if (selected)
                 Container(
