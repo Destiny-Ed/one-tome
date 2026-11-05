@@ -26,8 +26,9 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: AppTheme.background(context),
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.large(
+          SliverAppBar(
             title: const Text('OneTome'),
+            centerTitle: false,
             pinned: true,
             backgroundColor: AppTheme.background(context),
             actions: [
