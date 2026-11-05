@@ -118,7 +118,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (mounted) Navigator.of(context).pop();
   }
 
-  Future<void> _onBookCompleted(String title) async {
+  Future<void> _completeBook() async {
+    final provider = context.read<BookProvider>();
+    final title = _book.title;
+    await provider.completeBook();
     if (!mounted) return;
     await Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => CelebrationScreen(bookTitle: title)),
@@ -436,6 +439,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final bg = _nightMode ? const Color(0xFF1A1208) : AppTheme.background(context);
     final appBarBg = _nightMode ? const Color(0xFF1A1208) : AppTheme.surface(context);
     final fg = _nightMode ? const Color(0xFFFFE8C8) : AppTheme.textPrimary(context);
+    final onLastPage = _currentPage >= _book.totalPages;
 
     if (!_fileExists) {
       return Scaffold(
@@ -500,16 +504,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     }
                   },
                 ),
-                onPageChanged: (page) async {
+                onPageChanged: (page) {
                   if (page == null) return;
                   setState(() => _currentPage = page);
                   if (widget.trackProgress) {
-                    final title = _book.title;
-                    await bookProvider.updateProgress(page);
-                    if (mounted && bookProvider.activeBook == null && page >= _book.totalPages) {
-                      await _onBookCompleted(title);
-                      return;
-                    }
+                    bookProvider.updateProgress(page);
                   }
                   _playPageSound();
                   HapticFeedback.selectionClick();
@@ -531,31 +530,48 @@ class _ReaderScreenState extends State<ReaderScreen> {
               ),
               child: SafeArea(
                 top: false,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.chevron_left, color: fg),
-                      onPressed: _currentPage > 1 ? () => _goToPage(_currentPage - 1) : null,
-                    ),
-                    Text('$_currentPage / ${_book.totalPages}', style: TextStyle(color: fg, fontWeight: FontWeight.w600)),
-                    IconButton(
-                      icon: Icon(Icons.chevron_right, color: fg),
-                      onPressed: _currentPage < _book.totalPages ? () => _goToPage(_currentPage + 1) : null,
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.zoom_out, color: fg),
-                      onPressed: () {
-                        _controller.zoomDown();
-                        setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 3.0));
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.zoom_in, color: fg),
-                      onPressed: () {
-                        _controller.zoomUp();
-                        setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 3.0));
-                      },
+                    if (onLastPage && widget.trackProgress) ...[
+                      FilledButton.icon(
+                        onPressed: _completeBook,
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: const Text('Complete book'),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(48),
+                          backgroundColor: AppTheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.chevron_left, color: fg),
+                          onPressed: _currentPage > 1 ? () => _goToPage(_currentPage - 1) : null,
+                        ),
+                        Text('$_currentPage / ${_book.totalPages}', style: TextStyle(color: fg, fontWeight: FontWeight.w600)),
+                        IconButton(
+                          icon: Icon(Icons.chevron_right, color: fg),
+                          onPressed: _currentPage < _book.totalPages ? () => _goToPage(_currentPage + 1) : null,
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.zoom_out, color: fg),
+                          onPressed: () {
+                            _controller.zoomDown();
+                            setState(() => _zoom = (_zoom - 0.2).clamp(0.6, 3.0));
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.zoom_in, color: fg),
+                          onPressed: () {
+                            _controller.zoomUp();
+                            setState(() => _zoom = (_zoom + 0.2).clamp(0.6, 3.0));
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
