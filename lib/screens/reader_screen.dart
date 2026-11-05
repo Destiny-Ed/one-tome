@@ -10,6 +10,7 @@ import '../models/book.dart';
 import '../providers/book_provider.dart';
 import '../providers/reader_preferences_provider.dart';
 import '../providers/highlight_provider.dart';
+import '../theme/app_theme.dart';
 import '../widgets/app_bottom_sheet.dart';
 
 class ReaderScreen extends StatefulWidget {
@@ -100,17 +101,16 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final result = await AppBottomSheet.show<bool>(
       context: context,
       title: 'Daily goal reached',
-      child: Text('You\'ve read ${provider.dailyGoalPages} pages today. Keep going or mark done for today?'),
+      subtitle: 'You\'ve hit your reading target for today.',
+      child: const Text('You can keep going, or mark this book done for today and continue tomorrow.'),
       actions: [
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
-          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-          child: const Text('Continue'),
+          child: const Text('Continue reading'),
         ),
         const SizedBox(height: 8),
         OutlinedButton(
           onPressed: () => Navigator.pop(context, false),
-          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           child: const Text('Done for today'),
         ),
       ],
@@ -130,7 +130,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final noteController = TextEditingController();
     AppBottomSheet.show(
       context: context,
-      title: 'Highlight',
+      title: 'Save highlight',
+      subtitle: 'The selected text will be saved with an optional note.',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,12 +139,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.amber.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
+              color: AppTheme.accent.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               _selectedText!,
-              style: const TextStyle(fontStyle: FontStyle.italic),
+              style: const TextStyle(fontStyle: FontStyle.italic, color: AppTheme.navy),
             ),
           ),
           const SizedBox(height: 16),
@@ -170,69 +171,117 @@ class _ReaderScreenState extends State<ReaderScreen> {
             HapticFeedback.lightImpact();
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Highlight saved')));
           },
-          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
-          child: const Text('Save'),
+          child: const Text('Save highlight'),
         ),
       ],
     );
   }
 
+  void _showReaderActions() {
+    final prefs = context.read<ReaderPreferencesProvider>();
+    final bookProvider = context.read<BookProvider>();
+
+    AppBottomSheet.show(
+      context: context,
+      title: 'Reading options',
+      subtitle: 'Adjust how this book feels.',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(prefs.layout == ReadingLayout.vertical ? Icons.swap_vert : Icons.swap_horiz, color: AppTheme.primary),
+            title: const Text('Layout'),
+            subtitle: Text(prefs.layout == ReadingLayout.vertical ? 'Vertical (swipe up/down)' : 'Horizontal (swipe left/right)'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              final next = prefs.layout == ReadingLayout.vertical ? ReadingLayout.horizontal : ReadingLayout.vertical;
+              prefs.setLayout(next);
+              _controller.invalidate();
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(prefs.soundEnabled ? Icons.volume_up : Icons.volume_off, color: AppTheme.primary),
+            title: const Text('Page turn sound'),
+            subtitle: Text(prefs.soundEnabled ? 'On' : 'Off'),
+            trailing: Switch(
+              value: prefs.soundEnabled,
+              activeColor: AppTheme.primary,
+              onChanged: (v) {
+                prefs.setSoundEnabled(v);
+                Navigator.pop(context);
+              },
+            ),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.notes, color: AppTheme.primary),
+            title: const Text('Notes & highlights'),
+            subtitle: const Text('View and export what you\'ve saved'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.pop(context);
+              _showNotes();
+            },
+          ),
+          if (widget.trackProgress)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.done_all, color: AppTheme.primary),
+              title: const Text('Done for today'),
+              subtitle: const Text('Stop tracking for today and continue tomorrow'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                Navigator.pop(context);
+                await bookProvider.markDoneForToday();
+                if (mounted) Navigator.pop(context);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
   void _showNotes() {
     final highlights = context.read<HighlightProvider>().forBook(_book.id);
-    showModalBottomSheet(
+    AppBottomSheet.show(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: Theme.of(ctx).colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.6,
-          builder: (_, controller) => ListView(
-            controller: controller,
-            padding: const EdgeInsets.all(20),
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(2),
+      title: 'Notes',
+      subtitle: highlights.isEmpty ? 'No notes yet' : '${highlights.length} saved',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (highlights.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Text('Select text in the book and tap highlight to save.'),
+            )
+          else
+            ...highlights.map((h) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(h.text),
+                  subtitle: Text('Page ${h.page}${h.note != null ? '\n${h.note}' : ''}'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => context.read<HighlightProvider>().removeHighlight(h.id),
                   ),
-                ),
-              ),
-              Text('Notes', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 12),
-              if (highlights.isEmpty)
-                const Padding(padding: EdgeInsets.all(24), child: Text('No notes yet'))
-              else
-                ...highlights.map((h) => ListTile(
-                      title: Text(h.text),
-                      subtitle: Text('Page ${h.page}${h.note != null ? '\n${h.note}' : ''}'),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: () => context.read<HighlightProvider>().removeHighlight(h.id),
-                      ),
-                    )),
-              const SizedBox(height: 16),
-              FilledButton(
+                )),
+        ],
+      ),
+      actions: highlights.isEmpty
+          ? null
+          : [
+              OutlinedButton(
                 onPressed: () {
                   final text = context.read<HighlightProvider>().exportForBook(_book.id, _book.title);
                   Clipboard.setData(ClipboardData(text: text));
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notes copied to clipboard')));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notes copied')));
                 },
-                style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                 child: const Text('Export notes'),
               ),
             ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -291,14 +340,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                   onPressed: _replacePdf,
                   icon: const Icon(Icons.file_upload),
                   label: const Text('Replace PDF'),
-                  style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: _deleteBook,
                   icon: const Icon(Icons.delete_outline),
                   label: const Text('Delete this book'),
-                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
                 ),
               ],
             ),
@@ -325,21 +372,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
               backgroundColor: Colors.black.withOpacity(0.7),
               title: Text(_book.title, overflow: TextOverflow.ellipsis),
               actions: [
-                IconButton(
-                  icon: Icon(readerPrefs.layout == ReadingLayout.vertical ? Icons.swap_vert : Icons.swap_horiz),
-                  tooltip: 'Toggle layout',
-                  onPressed: () {
-                    final next = readerPrefs.layout == ReadingLayout.vertical
-                        ? ReadingLayout.horizontal
-                        : ReadingLayout.vertical;
-                    readerPrefs.setLayout(next);
-                    _controller.invalidate();
-                  },
-                ),
-                IconButton(
-                  icon: Icon(readerPrefs.soundEnabled ? Icons.volume_up : Icons.volume_off),
-                  onPressed: () => readerPrefs.setSoundEnabled(!readerPrefs.soundEnabled),
-                ),
                 if (_selectedText != null && _selectedText!.isNotEmpty)
                   IconButton(
                     icon: const Icon(Icons.highlight),
@@ -347,19 +379,10 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     onPressed: _createHighlightFromSelection,
                   ),
                 IconButton(
-                  icon: const Icon(Icons.notes),
-                  tooltip: 'Notes',
-                  onPressed: _showNotes,
+                  icon: const Icon(Icons.tune),
+                  tooltip: 'Reading options',
+                  onPressed: _showReaderActions,
                 ),
-                if (widget.trackProgress)
-                  IconButton(
-                    icon: const Icon(Icons.done_all),
-                    tooltip: 'Done for today',
-                    onPressed: () async {
-                      await bookProvider.markDoneForToday();
-                      if (mounted) Navigator.pop(context);
-                    },
-                  ),
               ],
             )
           : null,
