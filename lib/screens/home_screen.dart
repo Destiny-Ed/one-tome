@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -22,34 +23,28 @@ class HomeScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        title: const Text('OneTome'),
-        // actions: [
-        //   FilledButton.icon(
-        //     onPressed: () {
-        //       if (provider.hasActiveBook) {
-        //         ScaffoldMessenger.of(context).showSnackBar(
-        //           const SnackBar(
-        //               content: Text(
-        //                   'Finish your current book before starting another one.')),
-        //         );
-        //       } else {
-        //         Navigator.push(context,
-        //             MaterialPageRoute(builder: (_) => const ImportScreen()));
-        //       }
-        //     },
-        //     icon: const Icon(Icons.add),
-        //     label: const Text(
-        //       'Import Book',
-        //     ),
-        //     // style:
-        //     //     FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-        //   ),
-        // ],
-      ),
+      backgroundColor: AppTheme.background(context),
       body: CustomScrollView(
         slivers: [
+          SliverAppBar.large(
+            title: const Text('OneTome'),
+            pinned: true,
+            backgroundColor: AppTheme.background(context),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  if (provider.hasActiveBook) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Finish your current book before starting another one.')),
+                    );
+                  } else {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportScreen()));
+                  }
+                },
+              ),
+            ],
+          ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
             sliver: SliverList(
@@ -78,7 +73,7 @@ class HomeScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppTheme.surface(context),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(
@@ -87,7 +82,7 @@ class HomeScreen extends StatelessWidget {
                         const SizedBox(width: 10),
                         Text(
                           'Today: ${provider.pagesReadToday} / ${provider.dailyGoalPages} pages',
-                          style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.navy),
+                          style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context)),
                         ),
                       ],
                     ),
@@ -97,7 +92,7 @@ class HomeScreen extends StatelessWidget {
                 ] else
                   const _EmptyState(),
                 if (history.isNotEmpty) ...[
-                  const Text('Finished books', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.navy)),
+                  Text('Finished books', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary(context))),
                   const SizedBox(height: 12),
                   ...history.map((b) => _FinishedBookCard(book: b)),
                 ],
@@ -132,34 +127,58 @@ class _ActiveBookView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLocked = book.isDoneForToday;
+    final thumb = book.thumbnailPath as String?;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(book.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppTheme.navy)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (thumb != null && File(thumb).existsSync())
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(File(thumb), width: 56, height: 80, fit: BoxFit.cover),
+                )
+              else
+                Container(
+                  width: 56,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.auto_stories, color: AppTheme.primary),
+                ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(book.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary(context))),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: book.progress,
               minHeight: 6,
-              backgroundColor: Colors.grey.shade200,
+              backgroundColor: Colors.grey.withOpacity(0.2),
               color: AppTheme.primary,
             ),
           ),
           const SizedBox(height: 10),
-          Text('${book.currentPage} of ${book.totalPages} pages', style: const TextStyle(color: AppTheme.textMuted)),
+          Text('${book.currentPage} of ${book.totalPages} pages', style: TextStyle(color: AppTheme.textSecondary(context))),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.softBg,
+              color: AppTheme.background(context),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -170,7 +189,7 @@ class _ActiveBookView extends StatelessWidget {
                 Expanded(
                   child: Text(
                     _estimateCompletion(),
-                    style: const TextStyle(color: AppTheme.navy, height: 1.4),
+                    style: TextStyle(color: AppTheme.textPrimary(context), height: 1.4),
                   ),
                 ),
               ],
@@ -201,7 +220,7 @@ class _ActiveBookView extends StatelessWidget {
             icon: Icon(isLocked ? Icons.lock : Icons.play_arrow),
             label: Text(isLocked ? 'Locked until tomorrow' : 'Continue reading'),
             style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.navy,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.accent : AppTheme.navy,
               minimumSize: const Size.fromHeight(52),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
@@ -218,10 +237,12 @@ class _FinishedBookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final thumb = book.thumbnailPath;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: Colors.white,
+        color: AppTheme.surface(context),
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
@@ -233,30 +254,36 @@ class _FinishedBookCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.1),
-                    shape: BoxShape.circle,
+                if (thumb != null && File(thumb).existsSync())
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.file(File(thumb), width: 36, height: 48, fit: BoxFit.cover),
+                  )
+                else
+                  Container(
+                    width: 36,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.check, color: Colors.green, size: 18),
                   ),
-                  child: const Icon(Icons.check, color: Colors.green, size: 20),
-                ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(book.title, style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.navy)),
+                      Text(book.title, style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context))),
                       const SizedBox(height: 2),
                       Text(
                         'Finished ${book.completedAt != null ? DateFormat('MMM d, yyyy').format(book.completedAt!) : ''}',
-                        style: const TextStyle(fontSize: 13, color: AppTheme.textMuted),
+                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context)),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_right, color: AppTheme.textMuted, size: 20),
+                Icon(Icons.chevron_right, color: AppTheme.textSecondary(context), size: 20),
               ],
             ),
           ),
@@ -285,16 +312,16 @@ class _EmptyState extends StatelessWidget {
             child: const Icon(Icons.auto_stories_rounded, size: 48, color: AppTheme.primary),
           ),
           const SizedBox(height: 24),
-          const Text('One book. Finish it.', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppTheme.navy)),
+          Text('One book. Finish it.', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppTheme.textPrimary(context))),
           const SizedBox(height: 8),
-          const Text('Import a PDF to begin your first tome.', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textMuted)),
+          Text('Import a PDF to begin your first tome.', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textSecondary(context))),
           const SizedBox(height: 28),
           FilledButton.icon(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImportScreen())),
             icon: const Icon(Icons.add),
             label: const Text('Start a book'),
             style: FilledButton.styleFrom(
-              backgroundColor: AppTheme.navy,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.accent : AppTheme.navy,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             ),
           ),

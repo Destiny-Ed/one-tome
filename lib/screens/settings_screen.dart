@@ -70,40 +70,39 @@ class SettingsScreen extends StatelessWidget {
     final notificationProvider = context.watch<NotificationProvider>();
 
     return Scaffold(
-      backgroundColor: AppTheme.softBg,
+      backgroundColor: AppTheme.background(context),
       body: CustomScrollView(
         slivers: [
-          const SliverAppBar(
-            title: Text('Settings'),
-            centerTitle: false,
+          SliverAppBar.large(
+            title: const Text('Settings'),
             pinned: true,
-            backgroundColor: AppTheme.softBg,
+            backgroundColor: AppTheme.background(context),
           ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // _Section(
-                //   title: 'Appearance',
-                //   children: [
-                //     _ThemeOption(
-                //       label: 'System',
-                //       selected: themeProvider.themeMode == ThemeMode.system,
-                //       onTap: () => themeProvider.setThemeMode(ThemeMode.system),
-                //     ),
-                //     _ThemeOption(
-                //       label: 'Light',
-                //       selected: themeProvider.themeMode == ThemeMode.light,
-                //       onTap: () => themeProvider.setThemeMode(ThemeMode.light),
-                //     ),
-                //     _ThemeOption(
-                //       label: 'Dark',
-                //       selected: themeProvider.themeMode == ThemeMode.dark,
-                //       onTap: () => themeProvider.setThemeMode(ThemeMode.dark),
-                //     ),
-                //   ],
-                // ),
-                // const SizedBox(height: 20),
+                _Section(
+                  title: 'Appearance',
+                  children: [
+                    _ThemeOption(
+                      label: 'System',
+                      selected: themeProvider.themeMode == ThemeMode.system,
+                      onTap: () => themeProvider.setThemeMode(ThemeMode.system),
+                    ),
+                    _ThemeOption(
+                      label: 'Light',
+                      selected: themeProvider.themeMode == ThemeMode.light,
+                      onTap: () => themeProvider.setThemeMode(ThemeMode.light),
+                    ),
+                    _ThemeOption(
+                      label: 'Dark',
+                      selected: themeProvider.themeMode == ThemeMode.dark,
+                      onTap: () => themeProvider.setThemeMode(ThemeMode.dark),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
                 _Section(
                   title: 'Reading',
                   children: [
@@ -188,17 +187,17 @@ class _Section extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: AppTheme.textMuted,
+              color: AppTheme.textSecondary(context),
               letterSpacing: 0.3,
             ),
           ),
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.surface(context),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(children: children),
@@ -250,13 +249,13 @@ class _SettingRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.navy)),
+                    Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context))),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: const TextStyle(fontSize: 13, color: AppTheme.textMuted)),
+                    Text(subtitle, style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context))),
                   ],
                 ),
               ),
-              if (trailing != null) trailing! else if (onTap != null) const Icon(Icons.chevron_right, color: AppTheme.textMuted, size: 20),
+              if (trailing != null) trailing! else if (onTap != null) Icon(Icons.chevron_right, color: AppTheme.textSecondary(context), size: 20),
             ],
           ),
         ),
@@ -284,7 +283,7 @@ class _ThemeOption extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: AppTheme.navy)),
+                child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: AppTheme.textPrimary(context))),
               ),
               if (selected) const Icon(Icons.check, color: AppTheme.primary, size: 20),
             ],
