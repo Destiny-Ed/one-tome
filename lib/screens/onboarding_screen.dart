@@ -140,38 +140,43 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                           ),
                           if (i == 2) ...[
-                            const SizedBox(height: 48),
-                            Center(
+                            const SizedBox(height: 40),
+                            Container(
+                              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                              decoration: BoxDecoration(
+                                color: AppTheme.surface(context),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               child: Column(
                                 children: [
                                   Text(
                                     '$_dailyGoal',
                                     style: TextStyle(
-                                      fontSize: 72,
+                                      fontSize: 64,
                                       fontWeight: FontWeight.w700,
                                       color: AppTheme.textPrimary(context),
                                       height: 1,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text('pages / day', style: TextStyle(fontSize: 18, color: AppTheme.textSecondary(context))),
+                                  Text('pages / day', style: TextStyle(fontSize: 16, color: AppTheme.textSecondary(context))),
+                                  const SizedBox(height: 8),
+                                  Slider(
+                                    value: _dailyGoal.toDouble(),
+                                    min: 5,
+                                    max: 100,
+                                    divisions: 19,
+                                    activeColor: AppTheme.primary,
+                                    inactiveColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                                    onChanged: (v) => setState(() => _dailyGoal = v.round()),
+                                  ),
+                                  Text(
+                                    'Most people finish a book in 2–4 weeks at this pace.',
+                                    style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context)),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(height: 24),
-                            Slider(
-                              value: _dailyGoal.toDouble(),
-                              min: 5,
-                              max: 100,
-                              divisions: 19,
-                              activeColor: AppTheme.primary,
-                              inactiveColor: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                              onChanged: (v) => setState(() => _dailyGoal = v.round()),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Most people finish a book in 2–4 weeks at this pace.',
-                              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context)),
                             ),
                           ],
                           if (i == 3) ...[
