@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdfrx/pdfrx.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../models/book.dart';
@@ -128,13 +130,49 @@ class BookProvider extends ChangeNotifier {
     return dest;
   }
 
+  Future<String?> _generateThumbnail(String pdfPath, String bookId) async {
+    try {
+      final doc = await PdfDocument.openFile(pdfPath);
+      if (doc.pages.isEmpty) {
+        await doc.dispose();
+        return null;
+      }
+      final page = doc.pages.first;
+      final thumbWidth = 200;
+      final thumbHeight = (page.height / page.width * thumbWidth).round();
+      final image = await page.renderForDisplay(
+        width: thumbWidth,
+        height: thumbHeight,
+        backgroundColor: 0xffffffff,
+      );
+      await doc.dispose();
+      if (image == null) return null;
+
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      image.dispose();
+      if (byteData == null) return null;
+
+      final dir = await getApplicationDocumentsDirectory();
+      final thumbsDir = Directory('${dir.path}/thumbnails');
+      if (!await thumbsDir.exists()) await thumbsDir.create(recursive: true);
+      final thumbPath = '${thumbsDir.path}/$bookId.png';
+      await File(thumbPath).writeAsBytes(byteData.buffer.asUint8List());
+      return thumbPath;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<bool> importBook(String filePath, String title, int totalPages) async {
     if (hasActiveBook) return false;
     final localPath = await _copyPdfToAppDir(filePath, title);
+    final id = const Uuid().v4();
+    final thumb = await _generateThumbnail(localPath, id);
     _activeBook = Book(
-      id: const Uuid().v4(),
+      id: id,
       title: title,
       filePath: localPath,
+      thumbnailPath: thumb,
       totalPages: totalPages,
     );
     await _saveActive();
@@ -145,7 +183,9 @@ class BookProvider extends ChangeNotifier {
   Future<bool> replacePdfForActiveBook(String newSourcePath) async {
     if (_activeBook == null) return false;
     final localPath = await _copyPdfToAppDir(newSourcePath, _activeBook!.title);
+    final thumb = await _generateThumbnail(localPath, _activeBook!.id);
     _activeBook!.filePath = localPath;
+    if (thumb != null) _activeBook!.thumbnailPath = thumb;
     await _saveActive();
     notifyListeners();
     return true;
@@ -156,7 +196,9 @@ class BookProvider extends ChangeNotifier {
     if (index == -1) return false;
     final book = _history[index];
     final localPath = await _copyPdfToAppDir(newSourcePath, book.title);
+    final thumb = await _generateThumbnail(localPath, book.id);
     book.filePath = localPath;
+    if (thumb != null) book.thumbnailPath = thumb;
     await _saveHistory();
     notifyListeners();
     return true;
@@ -167,6 +209,10 @@ class BookProvider extends ChangeNotifier {
     try {
       final file = File(_activeBook!.filePath);
       if (await file.exists()) await file.delete();
+      if (_activeBook!.thumbnailPath != null) {
+        final thumb = File(_activeBook!.thumbnailPath!);
+        if (await thumb.exists()) await thumb.delete();
+      }
     } catch (_) {}
     _activeBook = null;
     await _saveActive();
@@ -180,6 +226,10 @@ class BookProvider extends ChangeNotifier {
     try {
       final file = File(book.filePath);
       if (await file.exists()) await file.delete();
+      if (book.thumbnailPath != null) {
+        final thumb = File(book.thumbnailPath!);
+        if (await thumb.exists()) await thumb.delete();
+      }
     } catch (_) {}
     _history.removeAt(index);
     await _saveHistory();
