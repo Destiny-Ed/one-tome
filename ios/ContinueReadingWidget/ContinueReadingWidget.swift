@@ -1,57 +1,59 @@
-//
-//  ContinueReadingWidget.swift
-//  ContinueReadingWidget
-//
-//  Created by Destiny Ed on 06/11/2026.
-//
-
 import WidgetKit
 import SwiftUI
 
-struct Provider: AppIntentTimelineProvider {
-    func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: ConfigurationAppIntent())
-    }
-
-    func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> SimpleEntry {
-        SimpleEntry(date: Date(), configuration: configuration)
-    }
-    
-    func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<SimpleEntry> {
-        var entries: [SimpleEntry] = []
-
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, configuration: configuration)
-            entries.append(entry)
-        }
-
-        return Timeline(entries: entries, policy: .atEnd)
-    }
-
-//    func relevances() async -> WidgetRelevances<ConfigurationAppIntent> {
-//        // Generate a list containing the contexts this widget is relevant in.
-//    }
-}
-
-struct SimpleEntry: TimelineEntry {
+struct ContinueReadingEntry: TimelineEntry {
     let date: Date
-    let configuration: ConfigurationAppIntent
+    let title: String
+    let progress: String
+    let percent: Int
 }
 
-struct ContinueReadingWidgetEntryView : View {
+struct Provider: TimelineProvider {
+    private let groupId = "group.app.one.tome"
+
+    func placeholder(in context: Context) -> ContinueReadingEntry {
+        ContinueReadingEntry(date: Date(), title: "Your book", progress: "12 of 240 pages", percent: 5)
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (ContinueReadingEntry) -> ()) {
+        completion(loadEntry())
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<ContinueReadingEntry>) -> ()) {
+        let entry = loadEntry()
+        let next = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date().addingTimeInterval(1800)
+        completion(Timeline(entries: [entry], policy: .after(next)))
+    }
+
+    private func loadEntry() -> ContinueReadingEntry {
+        let defaults = UserDefaults(suiteName: groupId)
+        let title = defaults?.string(forKey: "title") ?? "No active book"
+        let progress = defaults?.string(forKey: "progress") ?? "Start a book"
+        let percent = defaults?.integer(forKey: "percent") ?? 0
+        return ContinueReadingEntry(date: Date(), title: title, progress: progress, percent: percent)
+    }
+}
+
+struct ContinueReadingWidgetEntryView: View {
     var entry: Provider.Entry
 
     var body: some View {
-        VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
-
-            Text("Favorite Emoji:")
-            Text(entry.configuration.favoriteEmoji)
+        VStack(alignment: .leading, spacing: 6) {
+            Text("CONTINUE READING")
+                .font(.caption2)
+                .fontWeight(.bold)
+                .foregroundColor(Color(red: 0, green: 0.48, blue: 1))
+            Text(entry.title)
+                .font(.headline)
+                .lineLimit(2)
+            Text(entry.progress)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            ProgressView(value: Double(entry.percent), total: 100)
+                .tint(Color(red: 0, green: 0.48, blue: 1))
         }
+        .padding()
+        .containerBackground(.fill.tertiary, for: .widget)
     }
 }
 
@@ -59,30 +61,11 @@ struct ContinueReadingWidget: Widget {
     let kind: String = "ContinueReadingWidget"
 
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
+        StaticConfiguration(kind: kind, provider: Provider()) { entry in
             ContinueReadingWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
         }
+        .configurationDisplayName("Continue Reading")
+        .description("Pick up your current book.")
+        .supportedFamilies([.systemSmall, .systemMedium])
     }
-}
-
-extension ConfigurationAppIntent {
-    fileprivate static var smiley: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "😀"
-        return intent
-    }
-    
-    fileprivate static var starEyes: ConfigurationAppIntent {
-        let intent = ConfigurationAppIntent()
-        intent.favoriteEmoji = "🤩"
-        return intent
-    }
-}
-
-#Preview(as: .systemSmall) {
-    ContinueReadingWidget()
-} timeline: {
-    SimpleEntry(date: .now, configuration: .smiley)
-    SimpleEntry(date: .now, configuration: .starEyes)
 }
