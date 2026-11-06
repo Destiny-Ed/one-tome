@@ -10,7 +10,7 @@ import SwiftUI
 import WidgetKit
 
 struct ContinueReadingWidgetControl: ControlWidget {
-    static let kind: String = "app.one-tome.ContinueReadingWidget"
+    static let kind: String = "app.one.tome.ContinueReadingWidget"
 
     var body: some ControlWidgetConfiguration {
         AppIntentControlConfiguration(
