@@ -66,7 +66,7 @@ class SettingsScreen extends StatelessWidget {
       subtitle: 'See your book and jump back in faster.',
       child: Text(
         isIos
-            ? '1. Long-press the home screen\n2. Tap + in the corner\n3. Search for OneTome\n4. Add Continue Reading'
+            ? "1. Long-press the home screen\n2. Tap + or 'edit' in the corner\n3. Search for OneTome\n4. Add Continue Reading"
             : '1. Long-press an empty spot on the home screen\n2. Tap Widgets\n3. Find OneTome\n4. Drag Continue Reading onto the home screen',
       ),
       actions: [
