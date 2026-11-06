@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/book.dart';
 import '../providers/highlight_provider.dart';
+import '../theme/app_theme.dart';
 import 'reader_screen.dart';
 
 class FinishedBookScreen extends StatelessWidget {
@@ -20,13 +21,26 @@ class FinishedBookScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text(book.title, style: theme.textTheme.headlineMedium),
+          Row(
+            children: [
+              Expanded(
+                child: Text(book.title, style: theme.textTheme.headlineMedium),
+              ),
+              const SizedBox(width: 12),
+              _TypeChip(book: book),
+            ],
+          ),
+          if (book.author != null) ...[
+            const SizedBox(height: 4),
+            Text(book.author!, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7))),
+          ],
           const SizedBox(height: 8),
           Text(
             'Finished ${book.completedAt != null ? DateFormat('MMMM d, yyyy').format(book.completedAt!) : ''}',
             style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
           ),
           const SizedBox(height: 24),
+          _InfoRow(label: 'Type', value: book.isPhysical ? 'Physical' : 'PDF'),
           _InfoRow(label: 'Total pages', value: '${book.totalPages}'),
           _InfoRow(label: 'Started', value: DateFormat('MMM d, yyyy').format(book.addedAt)),
           if (book.completedAt != null)
@@ -35,20 +49,21 @@ class FinishedBookScreen extends StatelessWidget {
               value: '${book.completedAt!.difference(book.addedAt).inDays + 1}',
             ),
           const SizedBox(height: 32),
-          FilledButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ReaderScreen(bookOverride: book, trackProgress: false),
-                ),
-              );
-            },
-            icon: const Icon(Icons.menu_book),
-            label: const Text('Read again (no tracking)'),
-            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-          ),
-          const SizedBox(height: 32),
+          if (!book.isPhysical)
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ReaderScreen(bookOverride: book, trackProgress: false),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.menu_book),
+              label: const Text('Read again (no tracking)'),
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+            ),
+          if (!book.isPhysical) const SizedBox(height: 32),
           Text('Notes & Highlights', style: theme.textTheme.titleLarge),
           const SizedBox(height: 8),
           if (highlights.isEmpty)
@@ -78,6 +93,31 @@ class FinishedBookScreen extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _TypeChip extends StatelessWidget {
+  final Book book;
+  const _TypeChip({required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    final isPhysical = book.isPhysical;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: isPhysical ? Colors.teal.withOpacity(0.12) : AppTheme.primary.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        isPhysical ? 'Physical' : 'PDF',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: isPhysical ? Colors.teal.shade700 : AppTheme.primary,
+        ),
       ),
     );
   }

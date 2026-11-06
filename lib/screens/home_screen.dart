@@ -107,6 +107,31 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
+class _TypeChip extends StatelessWidget {
+  final Book book;
+  const _TypeChip({required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    final isPhysical = book.isPhysical;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: isPhysical ? Colors.teal.withOpacity(0.12) : AppTheme.primary.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        isPhysical ? 'Physical' : 'PDF',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: isPhysical ? Colors.teal.shade700 : AppTheme.primary,
+        ),
+      ),
+    );
+  }
+}
+
 class _ActiveBookView extends StatelessWidget {
   final Book book;
   final int dailyGoal;
@@ -164,8 +189,12 @@ class _ActiveBookView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(book.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppTheme.textPrimary(context))),
-                    if (book.author != null)
+                    const SizedBox(height: 4),
+                    _TypeChip(book: book),
+                    if (book.author != null) ...[
+                      const SizedBox(height: 4),
                       Text(book.author!, style: TextStyle(color: AppTheme.textSecondary(context), fontSize: 13)),
+                    ],
                   ],
                 ),
               ),
@@ -289,10 +318,16 @@ class _FinishedBookCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(book.title, style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary(context))),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Finished ${book.completedAt != null ? DateFormat('MMM d, yyyy').format(book.completedAt!) : ''}',
-                        style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context)),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          _TypeChip(book: book),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Finished ${book.completedAt != null ? DateFormat('MMM d, yyyy').format(book.completedAt!) : ''}',
+                            style: TextStyle(fontSize: 13, color: AppTheme.textSecondary(context)),
+                          ),
+                        ],
                       ),
                     ],
                   ),
