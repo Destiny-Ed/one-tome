@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:one_tome/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/book_provider.dart';
@@ -6,14 +7,13 @@ import 'providers/theme_provider.dart';
 import 'providers/reader_preferences_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/highlight_provider.dart';
-import 'screens/onboarding_screen.dart';
-import 'screens/main_shell.dart';
 import 'services/notification_service.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.init();
+  await HomeWidget.setAppGroupId('group.app.one_tome');
   runApp(
     MultiProvider(
       providers: [
