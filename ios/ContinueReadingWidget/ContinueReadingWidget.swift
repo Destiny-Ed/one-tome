@@ -9,7 +9,7 @@ struct ContinueReadingEntry: TimelineEntry {
 }
 
 struct Provider: TimelineProvider {
-    private let groupId = "group.app.one.tome"
+    private let groupId = "group.com.cognitto.onetome"
 
     func placeholder(in context: Context) -> ContinueReadingEntry {
         ContinueReadingEntry(date: Date(), title: "Your book", progress: "12 of 240 pages", percent: 5)

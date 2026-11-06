@@ -13,7 +13,7 @@ import 'theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService.init();
-  await HomeWidget.setAppGroupId('group.app.one.tome');
+  await HomeWidget.setAppGroupId('group.com.cognitto.onetome');
   runApp(
     MultiProvider(
       providers: [
