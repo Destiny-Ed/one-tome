@@ -6,6 +6,12 @@
 -keep class io.flutter.** { *; }
 -keep class io.flutter.plugins.** { *; }
 
+# Play Core deferred components (not used by OneTome)
+-dontwarn com.google.android.play.core.**
+-dontwarn com.google.android.play.core.splitcompat.**
+-dontwarn com.google.android.play.core.splitinstall.**
+-dontwarn com.google.android.play.core.tasks.**
+
 # pdfrx / pdfium
 -keep class org.chromium.** { *; }
 -dontwarn org.chromium.**
