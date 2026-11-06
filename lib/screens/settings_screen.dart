@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/theme_provider.dart';
 import '../providers/book_provider.dart';
 import '../providers/notification_provider.dart';
@@ -83,6 +84,21 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _contactSupport(BuildContext context) async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: 'cognittoapps@gmail.com',
+      query: 'subject=${Uri.encodeComponent('OneTome feedback')}&body=${Uri.encodeComponent('Hi,\n\n')}',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No email app found. Write to cognittoapps@gmail.com')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
@@ -161,6 +177,18 @@ class SettingsScreen extends StatelessWidget {
                           if (picked != null) notificationProvider.setTime(picked);
                         },
                       ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _Section(
+                  title: 'Support',
+                  children: [
+                    _SettingRow(
+                      icon: Icons.mail_outline,
+                      title: 'Contact support',
+                      subtitle: 'Feedback, questions, or issues',
+                      onTap: () => _contactSupport(context),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
