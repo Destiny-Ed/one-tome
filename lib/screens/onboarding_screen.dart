@@ -37,6 +37,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       'title': 'A gentle\nnudge',
       'subtitle': 'Optional reminder at a time that works for you.',
     },
+    {
+      'title': 'Quick access\nfrom home',
+      'subtitle':
+          'Add the Continue Reading widget to your home screen.\nSee your book and jump back in without opening the app.',
+    },
   ];
 
   @override
@@ -284,6 +289,49 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                       ),
                                     ),
                                   ],
+                                ],
+                              ),
+                            ),
+                          ],
+                          if (i == 4) ...[
+                            const SizedBox(height: 36),
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: AppTheme.surface(context),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.widgets_outlined,
+                                          color: AppTheme.primary),
+                                      const SizedBox(width: 10),
+                                      Text('Continue Reading',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              color: AppTheme.textPrimary(
+                                                  context))),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  Text(
+                                    'iPhone: long-press the home screen → + → search OneTome',
+                                    style: TextStyle(
+                                        color:
+                                            AppTheme.textSecondary(context),
+                                        height: 1.4),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Android: long-press home → Widgets → OneTome',
+                                    style: TextStyle(
+                                        color:
+                                            AppTheme.textSecondary(context),
+                                        height: 1.4),
+                                  ),
                                 ],
                               ),
                             ),
