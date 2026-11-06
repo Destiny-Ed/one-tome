@@ -6,6 +6,7 @@ import 'package:pdfrx/pdfrx.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../models/book.dart';
+import '../services/home_widget_service.dart';
 
 class BookProvider extends ChangeNotifier {
   static const _activeKey = 'active_book';
@@ -64,6 +65,7 @@ class BookProvider extends ChangeNotifier {
     _history = historyJson.map(Book.fromJsonString).toList();
     _loading = false;
     notifyListeners();
+    await HomeWidgetService.update(_activeBook);
   }
 
   String _todayKey() {
@@ -114,6 +116,7 @@ class BookProvider extends ChangeNotifier {
     } else {
       await prefs.setString(_activeKey, _activeBook!.toJsonString());
     }
+    await HomeWidgetService.update(_activeBook);
   }
 
   Future<void> _saveHistory() async {
@@ -348,5 +351,6 @@ class BookProvider extends ChangeNotifier {
     _pagesReadToday = 0;
     _goalDialogShownToday = false;
     notifyListeners();
+    await HomeWidgetService.update(null);
   }
 }
