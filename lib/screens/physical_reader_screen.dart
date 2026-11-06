@@ -34,9 +34,53 @@ class _PhysicalReaderScreenState extends State<PhysicalReaderScreen> {
   Future<void> _saveProgress() async {
     final book = context.read<BookProvider>().activeBook;
     if (book == null || book.isDoneForToday) return;
+
     final page = int.tryParse(_pageController.text.trim()) ?? book.currentPage;
+    final isComplete = page >= book.totalPages && book.totalPages > 0;
+
+    if (isComplete) {
+      await _confirmComplete(page);
+      return;
+    }
+
     await context.read<BookProvider>().updateProgress(page);
     if (mounted) await _checkGoal();
+  }
+
+  Future<void> _confirmComplete(int page) async {
+    if (_dialogShowing) return;
+    _dialogShowing = true;
+
+    final result = await AppBottomSheet.show<bool>(
+      context: context,
+      title: 'Book completed?',
+      subtitle: 'You entered the last page.',
+      child: const Text('Mark this book as finished and celebrate, or keep it open and continue later.'),
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Yes, complete book'),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Not yet'),
+        ),
+      ],
+    );
+
+    _dialogShowing = false;
+
+    if (!mounted) return;
+
+    if (result == true) {
+      await context.read<BookProvider>().updateProgress(page);
+      await _complete();
+    } else {
+      // Save progress but do not complete
+      await context.read<BookProvider>().updateProgress(page);
+      if (mounted) await _checkGoal();
+    }
   }
 
   Future<void> _checkGoal() async {
@@ -181,7 +225,6 @@ class _PhysicalReaderScreenState extends State<PhysicalReaderScreen> {
     }
 
     final isLocked = book.isDoneForToday;
-    final onLast = book.currentPage >= book.totalPages;
 
     return Scaffold(
       backgroundColor: AppTheme.background(context),
@@ -265,15 +308,6 @@ class _PhysicalReaderScreenState extends State<PhysicalReaderScreen> {
                   icon: const Icon(Icons.done_all),
                   label: const Text('Done for today'),
                 ),
-                if (onLast && !isLocked) ...[
-                  const SizedBox(height: 20),
-                  FilledButton.icon(
-                    onPressed: _complete,
-                    icon: const Icon(Icons.check_circle_outline),
-                    label: const Text('Complete book'),
-                    style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-                  ),
-                ],
               ],
             ),
           ),
