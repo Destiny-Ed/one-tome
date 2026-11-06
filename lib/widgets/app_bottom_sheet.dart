@@ -35,79 +35,81 @@ class AppBottomSheet {
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
               child: SafeArea(
                 top: false,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 36,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: dark ? Colors.grey.shade700 : Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: primary,
-                            ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 36,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: dark ? Colors.grey.shade700 : Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                        IconButton(
-                          icon: Icon(Icons.close, color: primary),
-                          onPressed: () => Navigator.pop(ctx),
-                        ),
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: primary,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.close, color: primary),
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(subtitle, style: TextStyle(color: secondary, height: 1.4)),
                       ],
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 4),
-                      Text(subtitle, style: TextStyle(color: secondary, height: 1.4)),
+                      const SizedBox(height: 16),
+                      DefaultTextStyle(
+                        style: TextStyle(color: primary, fontSize: 15, height: 1.4),
+                        child: child,
+                      ),
+                      if (actions != null) ...[
+                        const SizedBox(height: 20),
+                        ...actions.map((action) {
+                          if (action is FilledButton) {
+                            return FilledButton(
+                              onPressed: action.onPressed,
+                              style: FilledButton.styleFrom(
+                                backgroundColor: dark ? AppTheme.accent : AppTheme.navy,
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size.fromHeight(52),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              child: action.child ?? const SizedBox.shrink(),
+                            );
+                          }
+                          if (action is OutlinedButton) {
+                            return OutlinedButton(
+                              onPressed: action.onPressed,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: primary,
+                                side: BorderSide(color: dark ? Colors.grey.shade700 : Colors.grey.shade300),
+                                minimumSize: const Size.fromHeight(48),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              child: action.child ?? const SizedBox.shrink(),
+                            );
+                          }
+                          return action;
+                        }),
+                      ],
                     ],
-                    const SizedBox(height: 16),
-                    DefaultTextStyle(
-                      style: TextStyle(color: primary, fontSize: 15, height: 1.4),
-                      child: child,
-                    ),
-                    if (actions != null) ...[
-                      const SizedBox(height: 20),
-                      ...actions.map((action) {
-                        if (action is FilledButton) {
-                          return FilledButton(
-                            onPressed: action.onPressed,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: dark ? AppTheme.accent : AppTheme.navy,
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size.fromHeight(52),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: action.child ?? const SizedBox.shrink(),
-                          );
-                        }
-                        if (action is OutlinedButton) {
-                          return OutlinedButton(
-                            onPressed: action.onPressed,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: primary,
-                              side: BorderSide(color: dark ? Colors.grey.shade700 : Colors.grey.shade300),
-                              minimumSize: const Size.fromHeight(48),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            ),
-                            child: action.child ?? const SizedBox.shrink(),
-                          );
-                        }
-                        return action;
-                      }),
-                    ],
-                  ],
+                  ),
                 ),
               ),
             ),
