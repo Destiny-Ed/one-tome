@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -52,6 +53,26 @@ class SettingsScreen extends StatelessWidget {
             Navigator.pop(context);
           },
           child: const Text('Save'),
+        ),
+      ],
+    );
+  }
+
+  void _showWidgetHelp(BuildContext context) {
+    final isIos = Platform.isIOS;
+    AppBottomSheet.show(
+      context: context,
+      title: 'Add home widget',
+      subtitle: 'See your book and jump back in faster.',
+      child: Text(
+        isIos
+            ? '1. Long-press the home screen\n2. Tap + in the corner\n3. Search for OneTome\n4. Add Continue Reading'
+            : '1. Long-press an empty spot on the home screen\n2. Tap Widgets\n3. Find OneTome\n4. Drag Continue Reading onto the home screen',
+      ),
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Got it'),
         ),
       ],
     );
@@ -177,6 +198,12 @@ class SettingsScreen extends StatelessWidget {
                           if (picked != null) notificationProvider.setTime(picked);
                         },
                       ),
+                    _SettingRow(
+                      icon: Icons.widgets_outlined,
+                      title: 'Home widget',
+                      subtitle: 'Add Continue Reading for quick access',
+                      onTap: () => _showWidgetHelp(context),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
